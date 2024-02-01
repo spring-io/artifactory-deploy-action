@@ -1,0 +1,62 @@
+name: 'Artifactory Deploy'
+description: 'Deploy artifacts to Artifactory'
+inputs:
+  uri:
+    description: 'URI of the Artifactory server'
+    required: true
+  username:
+    description: 'Artifactory username'
+    required: true
+  password:
+    description: 'Artifactory password'
+    required: true
+  build-name:
+    description: 'Name of the build'
+    required: true
+  build-number:
+    description: 'Number of the build'
+    required: true
+    default: ${{ github.run_number }}
+  build-uri:
+    description: 'URI of the build that produced the artifacts that are to be deployed'
+    required: false
+    default: ${{ format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
+  folder:
+    description: 'Folder containing the artifacts to deploy'
+    required: true
+  project:
+    description: 'Project in which build info should be stored'
+    required: false
+  repository:
+    description: 'Artifactory repository to which the artifacts should be deployed'
+  threads:
+    description: 'Number of threads to use when deploying artifacts'
+    required: false
+    default: 1
+  signing-key:
+    description: 'A PGP/GPG signing key that will be used to sign artifacts before they are deployed'
+    required: false
+  signing-passphrase:
+    description: 'Passphrase of the signing key'
+    required: false
+  artifact-properties:
+    description: 'Properties to apply to the deployed artifacts. Each line should be of the form
+      `<includes>:<excludes>:<properties>. includes and excludes are comma-separated Ant patterns.
+      properties is a comma-separated list of key=value pairs'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - --artifactory.server.uri=${{ inputs.uri }}
+    - --artifactory.server.username=${{ inputs.username }}
+    - --artifactory.server.password=${{ inputs.password }}
+    - --artifactory.deploy.artifact-properties=${{ inputs.artifact-properties }}
+    - --artifactory.deploy.build.name=${{ inputs.build-name }}
+    - --artifactory.deploy.build.number=${{ inputs.build-number }}
+    - --artifactory.deploy.build.uri=${{ inputs.build-uri }}
+    - --artifactory.deploy.folder=${{ inputs.folder }}
+    - --artifactory.deploy.project=${{ inputs.project }}
+    - --artifactory.deploy.repository=${{ inputs.repository }}
+    - --artifactory.deploy.threads=${{ inputs.threads }}
+    - --artifactory.signing.key=${{ inputs.signing-key }}
+    - --artifactory.signing.passphrase=${{ inputs.signing-passphrase }}

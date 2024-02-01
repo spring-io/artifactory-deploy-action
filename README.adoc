@@ -1,0 +1,81 @@
+= Artifactory Deploy Action
+
+A https://docs.github.com/en/actions[GitHub action] for deploying to a https://www.jfrog.com/artifactory/[JFrog Artifactory] server.
+
+
+
+== Overview
+
+This action can be used to deploy artifacts to a JFrog artifactory server.
+It makes use of the "builds" and "artifact properties" features of Artifactory to link deployed artifacts to their builds.
+
+
+
+== Configuration
+
+
+
+=== Required Inputs
+
+- `uri`: URI of the Artifactory server
+- `username`: Username for authentication with Artifactory
+- `password`: Password for authentication with Artifactory
+- `build-name`: Name of the build
+- `repository`: Artifactory repository to which the artifacts should be deployed
+- `folder`: Folder containing the artifacts to deploy
+
+
+
+=== Optional Inputs
+
+- `artifact-properties`: Properties to apply to the deployed artifacts.
+  Each line should be of the form `<includes>:<excludes>:<properties>`.
+  `includes` and `excludes` are comma-separated Ant patterns.
+  `properties` is a comma-separated list of `key=value` pairs
+- `build-uri`: URI of the build that produced that artifacts that are to be deployed.
+  Defaults to the URI of the current workflow run
+- `project`: Artifactory project in which the build info should be stored
+- `threads`: Number of threads to use when deploying artifacts.
+  Defaults to 1
+- `signing-key`: A PGP/GPG signing key that will be used to sign artifacts before they are deployed
+- `signing-passphrase`: Passphrase of the signing key
+
+
+
+=== Minimal Example
+
+[source,yaml,indent=0]
+----
+steps:
+  - name: Deploy
+    uses: spring-io/artifactory-deploy-action@main
+    with:
+      uri: 'https://repo.example.com'
+      username: ${{ secrets.ARTIFACTORY_USERNAME }}
+      password: ${{ secrets.ARTIFACTORY_PASSWORD }}
+      build-name: 'example-build'
+      repository: 'test-libs-snapshot-local'
+      folder: 'deployment-repository'
+----
+
+
+
+=== Debugging
+
+The action uses the `ACTION_STEPS_DEBUG` environment variable to enable additional debug logging.
+This can be configured by passing through the value of the `ACTION_STEPS_DEBUG` secret that GitHub Actions sets when re-running with debug logging enabled:
+
+[source,yaml,indent=0]
+----
+steps:
+  - name: Deploy
+    uses: spring-io/artifactory-deploy-action@main
+    env:
+      ACTION_STEPS_DEBUG: ${{ secrets.ACTION_STEPS_DEBUG }}
+----
+
+
+
+== License
+
+Artifactory Deploy Action is Open Source software released under the https://www.apache.org/licenses/LICENSE-2.0.html[Apache 2.0 license].
