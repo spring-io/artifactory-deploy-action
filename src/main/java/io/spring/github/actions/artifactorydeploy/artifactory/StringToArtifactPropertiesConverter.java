@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
  * {@link String}.
  *
  * @author Andy Wilkinson
+ * @author Artem Bilan
  */
 class StringToArtifactPropertiesConverter implements Converter<String, List<ArtifactProperties>> {
 
@@ -46,11 +47,11 @@ class StringToArtifactPropertiesConverter implements Converter<String, List<Arti
 	}
 
 	private ArtifactProperties toArtifactProperties(String line) {
-		if (!StringUtils.hasLength(line)) {
+		if (!StringUtils.hasText(line)) {
 			return null;
 		}
 		String[] components = line.split(":");
-		Assert.state(components != null && components.length == 3,
+		Assert.state(components.length == 3,
 				"Artifact properties must be configured in the form <includes>:<excludes>:<properties>");
 		return new ArtifactProperties(commaSeparatedList(components[0]), commaSeparatedList(components[1]),
 				commaSeparatedKeyValues(components[2]));
@@ -68,7 +69,7 @@ class StringToArtifactPropertiesConverter implements Converter<String, List<Arti
 		for (String pair : input.split(",")) {
 			int equalsIndex = pair.indexOf('=');
 			String key = pair.substring(0, equalsIndex);
-			String value = pair.substring(equalsIndex + 1, pair.length());
+			String value = pair.substring(equalsIndex + 1);
 			properties.put(key, value);
 		}
 		return properties;

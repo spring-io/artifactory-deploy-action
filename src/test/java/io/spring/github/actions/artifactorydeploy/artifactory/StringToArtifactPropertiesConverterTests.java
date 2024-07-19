@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for {@link StringToArtifactPropertiesConverter}.
  *
  * @author Andy Wilkinson
+ * @author Artem Bilan
  */
 class StringToArtifactPropertiesConverterTests {
 
@@ -75,7 +76,7 @@ class StringToArtifactPropertiesConverterTests {
 	@Test
 	void convertWithMultipleLinesProducesMultipleArtifactProperties() {
 		List<ArtifactProperties> artifactProperties = this.converter
-			.convert("one,two:three:a=alpha,b=bravo%nfour:five:c=charlie%nsix:seven:d=delta".formatted());
+			.convert("one,two:three:a=alpha,b=bravo%n    %nfour:five:c=charlie%nsix:seven:d=delta".formatted());
 		assertThat(artifactProperties).hasSize(3).first().satisfies((properties) -> {
 			assertThat(properties.include()).containsExactly("one", "two");
 			assertThat(properties.exclude()).containsExactly("three");
