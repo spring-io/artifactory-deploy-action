@@ -99,7 +99,7 @@ public final class ArmoredAsciiSigner {
 		for (PGPSecretKeyRing keyring : keyrings) {
 			Iterable<PGPSecretKey> secretKeys = keyring::getSecretKeys;
 			for (PGPSecretKey candidate : secretKeys) {
-				if (keyId != null) {
+				if (keyId != null && keyId.length() > 0) {
 					String candidateKeyId = String.format("%08X", 0xFFFFFFFFL & candidate.getKeyID());
 					if (keyId.equals(candidateKeyId)) {
 						return candidate;

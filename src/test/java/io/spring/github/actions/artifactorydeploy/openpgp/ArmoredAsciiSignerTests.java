@@ -98,6 +98,12 @@ class ArmoredAsciiSignerTests {
 	}
 
 	@Test
+	void getWhenSigningKeyIsKeyAndIdIsEmptyReturnsSigner() throws Exception {
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, "");
+		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSignature);
+	}
+
+	@Test
 	void getWhenSigningKeyIsSubkeyAndIdMatchesReturnsSigner() throws Exception {
 		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingSubkeyContent, this.passphrase,
 				"C3E2E826");
