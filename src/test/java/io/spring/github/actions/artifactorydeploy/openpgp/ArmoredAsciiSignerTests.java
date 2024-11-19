@@ -111,6 +111,16 @@ class ArmoredAsciiSignerTests {
 	}
 
 	@Test
+	void getWhenSigningKeyIsSubkeyWithoutKeyIdThrowsException() {
+		assertThatIllegalStateException()
+			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, this.signingSubkeyContent, this.passphrase, null))
+			.withMessage("Unable to read signing key")
+			.havingCause()
+			.withMessage("Found signing key '414E73D1' but its private key is empty. Specify a key ID to use a "
+					+ "different signing key.");
+	}
+
+	@Test
 	void getWhenSigningKeyIsFileReturnsSigner() throws Exception {
 		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyFile.getAbsolutePath(),
 				this.passphrase, null);

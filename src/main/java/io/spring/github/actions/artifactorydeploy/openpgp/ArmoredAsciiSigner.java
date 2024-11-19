@@ -99,13 +99,17 @@ public final class ArmoredAsciiSigner {
 		for (PGPSecretKeyRing keyring : keyrings) {
 			Iterable<PGPSecretKey> secretKeys = keyring::getSecretKeys;
 			for (PGPSecretKey candidate : secretKeys) {
+				String candidateKeyId = String.format("%08X", 0xFFFFFFFFL & candidate.getKeyID());
 				if (keyId != null && keyId.length() > 0) {
-					String candidateKeyId = String.format("%08X", 0xFFFFFFFFL & candidate.getKeyID());
 					if (keyId.equals(candidateKeyId)) {
 						return candidate;
 					}
 				}
 				else if (candidate.isSigningKey()) {
+					if (candidate.isPrivateKeyEmpty()) {
+						throw new IllegalArgumentException("Found signing key '" + candidateKeyId
+								+ "' but its private key is empty. Specify a key ID to use a different signing key.");
+					}
 					return candidate;
 				}
 			}
