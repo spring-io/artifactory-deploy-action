@@ -18,7 +18,6 @@ package io.spring.github.actions.artifactorydeploy.openpgp;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -214,7 +213,7 @@ public final class ArmoredAsciiSigner {
 
 	/**
 	 * Get an {@link ArmoredAsciiSigner} for the given {@code signingKey} and
-	 * {@code passphrase}. The signing key may either contain a PHP private key block or
+	 * {@code passphrase}. The signing key may either contain a PGP private key block or
 	 * reference a file.
 	 * @param signingKey the signing key (either the key itself or a reference to a file)
 	 * @param passphrase the passphrase to use
@@ -225,116 +224,18 @@ public final class ArmoredAsciiSigner {
 		return get(Clock.systemDefaultZone(), signingKey, passphrase);
 	}
 
-	/**
-	 * Get an {@link ArmoredAsciiSigner} for the given {@code signingKey} and
-	 * {@code passphrase}. The signing key may either contain a PHP private key block or
-	 * reference a file.
-	 * @param clock the clock to use when generating signatures
-	 * @param signingKey the signing key (either the key itself or a reference to a file)
-	 * @param passphrase the passphrase to use
-	 * @return an {@link ArmoredAsciiSigner} insance
-	 * @throws IOException on IO error
-	 */
-	public static ArmoredAsciiSigner get(Clock clock, String signingKey, String passphrase) throws IOException {
+	static ArmoredAsciiSigner get(Clock clock, String signingKey, String passphrase) throws IOException {
 		Assert.notNull(clock, "Clock must not be null");
 		Assert.notNull(signingKey, "SigningKey must not be null");
 		Assert.hasText(signingKey, "SigningKey must not be empty");
+		Assert.notNull(passphrase, "Passphrase must not be null");
 		if (isArmoredAscii(signingKey)) {
 			byte[] bytes = signingKey.getBytes(StandardCharsets.UTF_8);
-			return get(clock, new ByteArrayInputStream(bytes), passphrase);
+			return new ArmoredAsciiSigner(clock, new ByteArrayInputStream(bytes), passphrase);
 		}
 		Assert.isTrue(!signingKey.contains("\n"),
-				"Signing key is not does not contain a PGP private key block and does not reference a file");
-		return get(clock, new File(signingKey), passphrase);
-	}
-
-	/**
-	 * Get an {@link ArmoredAsciiSigner} for the given {@code signingKey} file and
-	 * {@code passphrase}.
-	 * @param signingKey the signing key file
-	 * @param passphrase the passphrase to use
-	 * @return an {@link ArmoredAsciiSigner} insance
-	 * @throws IOException on IO error
-	 */
-	public static ArmoredAsciiSigner get(File signingKey, String passphrase) throws IOException {
-		return get(Clock.systemDefaultZone(), signingKey, passphrase);
-	}
-
-	/**
-	 * Get an {@link ArmoredAsciiSigner} for the given {@code signingKey} and
-	 * {@code passphrase}.
-	 * @param clock the clock to use when generating signatures
-	 * @param signingKey the signing key file
-	 * @param passphrase the passphrase to use
-	 * @return an {@link ArmoredAsciiSigner} insance
-	 * @throws IOException on IO error
-	 */
-	public static ArmoredAsciiSigner get(Clock clock, File signingKey, String passphrase) throws IOException {
-		Assert.notNull(clock, "Clock must not be null");
-		Assert.notNull(signingKey, "SigningKey must not be null");
-		Assert.notNull(passphrase, "Passphrase must not be null");
-		Assert.isTrue(signingKey.exists(), "Signing key file does not exist");
-		Assert.isTrue(signingKey.isFile(), "Signing key file does not reference a file");
-		return get(clock, new FileInputStream(signingKey), passphrase);
-	}
-
-	/**
-	 * Get an {@link ArmoredAsciiSigner} for the given {@code signingKey} and
-	 * {@code passphrase}.
-	 * @param signingKey an {@link InputStreamSource} providing the signing key
-	 * @param passphrase the passphrase to use
-	 * @return an {@link ArmoredAsciiSigner} insance
-	 * @throws IOException on IO error
-	 */
-	public static ArmoredAsciiSigner get(InputStreamSource signingKey, String passphrase) throws IOException {
-		return get(Clock.systemDefaultZone(), signingKey, passphrase);
-	}
-
-	/**
-	 * Get an {@link ArmoredAsciiSigner} for the given {@code signingKey} and
-	 * {@code passphrase}.
-	 * @param clock the clock to use when generating signatures
-	 * @param signingKey an {@link InputStreamSource} providing the signing key
-	 * @param passphrase the passphrase to use
-	 * @return an {@link ArmoredAsciiSigner} insance
-	 * @throws IOException on IO error
-	 */
-	public static ArmoredAsciiSigner get(Clock clock, InputStreamSource signingKey, String passphrase)
-			throws IOException {
-		Assert.notNull(clock, "Clock must not be null");
-		Assert.notNull(signingKey, "SigningKey must not be null");
-		Assert.notNull(passphrase, "Passphrase must not be null");
-		return get(clock, signingKey.getInputStream(), passphrase);
-	}
-
-	/**
-	 * Get an {@link ArmoredAsciiSigner} for the given {@code signingKey} and
-	 * {@code passphrase}.
-	 * @param signingKey an {@link InputStream} providing the signing key (will be closed
-	 * after use)
-	 * @param passphrase the passphrase to use
-	 * @return an {@link ArmoredAsciiSigner} insance
-	 * @throws IOException on IO error
-	 */
-	public static ArmoredAsciiSigner get(InputStream signingKey, String passphrase) throws IOException {
-		return get(Clock.systemDefaultZone(), signingKey, passphrase);
-	}
-
-	/**
-	 * Get an {@link ArmoredAsciiSigner} for the given {@code signingKey} and
-	 * {@code passphrase}.
-	 * @param clock the clock to use when generating signatures
-	 * @param signingKey an {@link InputStream} providing the signing key (will be closed
-	 * after use)
-	 * @param passphrase the passphrase to use
-	 * @return an {@link ArmoredAsciiSigner} insance
-	 * @throws IOException on IO error
-	 */
-	public static ArmoredAsciiSigner get(Clock clock, InputStream signingKey, String passphrase) throws IOException {
-		Assert.notNull(clock, "Clock must not be null");
-		Assert.notNull(signingKey, "SigningKey must not be null");
-		Assert.notNull(passphrase, "Passphrase must not be null");
-		return new ArmoredAsciiSigner(clock, signingKey, passphrase);
+				"Signing key does not contain a PGP private key block and does not reference a file");
+		return new ArmoredAsciiSigner(clock, new FileInputStream(signingKey), passphrase);
 	}
 
 	private static boolean isArmoredAscii(String signingKey) {

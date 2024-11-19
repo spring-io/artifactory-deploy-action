@@ -54,8 +54,9 @@ class DeployableArtifactsSignerTests {
 
 	@BeforeEach
 	void setup() throws IOException {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner
-			.get(ArmoredAsciiSigner.class.getResourceAsStream("test-private.txt"), "password");
+		String signingKey = new String(ArmoredAsciiSigner.class.getResourceAsStream("test-private.txt").readAllBytes(),
+				StandardCharsets.UTF_8);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(signingKey, "password");
 		this.signer = new DeployableArtifactsSigner(signer, this.properties);
 	}
 

@@ -34,7 +34,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamSource;
-import org.springframework.core.io.Resource;
 import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,8 +53,6 @@ class ArmoredAsciiSignerTests {
 
 	private File signingKeyFile;
 
-	private Resource signingKeyResource;
-
 	private String signingKeyContent;
 
 	private String passphrase = "password";
@@ -72,7 +69,6 @@ class ArmoredAsciiSignerTests {
 	void setup(@TempDir File temp) throws Exception {
 		this.temp = temp;
 		this.signingKeyFile = copyClasspathFile("test-private.txt");
-		this.signingKeyResource = new FileSystemResource(this.signingKeyFile);
 		this.signingKeyContent = copyToString(this.signingKeyFile);
 		this.sourceFile = copyClasspathFile("source.txt");
 		this.sourceContent = copyToString(this.sourceFile);
@@ -80,186 +76,59 @@ class ArmoredAsciiSignerTests {
 	}
 
 	@Test
-	void getWithStringSigningKeyWhenSigningKeyIsKeyReturnsSigner() throws Exception {
+	void getWhenSigningKeyIsKeyReturnsSigner() throws Exception {
 		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase);
 		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSignature);
 	}
 
 	@Test
-	void getWithStringSigningKeyWhenSigningKeyIsFileReturnsSigner() throws Exception {
+	void getWhenSigningKeyIsFileReturnsSigner() throws Exception {
 		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyFile.getAbsolutePath(),
 				this.passphrase);
 		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSignature);
 	}
 
 	@Test
-	void getWithStringSigningKeyWhenClockIsNullThrowsException() {
+	void getWhenClockIsNullThrowsException() {
 		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(null, this.signingKeyContent, this.passphrase))
+			.isThrownBy(() -> ArmoredAsciiSigner.get((Clock) null, this.signingKeyContent, this.passphrase))
 			.withMessage("Clock must not be null");
 	}
 
 	@Test
-	void getWithStringSigningKeyWhenSigningKeyIsNullThrowsException() {
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, (String) null, this.passphrase))
+	void getWhenSigningKeyIsNullThrowsException() {
+		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get((String) null, this.passphrase))
 			.withMessage("SigningKey must not be null");
 	}
 
 	@Test
-	void getWithStringSigningKeyWhenSigningKeyIsEmptyThrowsException() {
-		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, "", this.passphrase))
+	void getWhenSigningKeyIsEmptyThrowsException() {
+		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get("", this.passphrase))
 			.withMessage("SigningKey must not be empty");
 	}
 
 	@Test
-	void getWithStringSigningKeyWhenSigningKeyIsMultiLineWithoutHeaderThrowsException() {
-		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, "ab\ncd", this.passphrase))
-			.withMessage(
-					"Signing key is not does not contain a PGP private key block " + "and does not reference a file");
+	void getWhenSigningKeyIsMultiLineWithoutHeaderThrowsException() {
+		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get("ab\ncd", this.passphrase))
+			.withMessage("Signing key does not contain a PGP private key block and does not reference a file");
 	}
 
 	@Test
-	void getWithStringSigningKeyWhenSigningKeyIsMalformedThrowsException() throws Exception {
+	void getWhenSigningKeyIsMalformedThrowsException() throws Exception {
 		String signingKey = copyToString(getClass().getResourceAsStream("test-bad-private.txt"));
 		assertThatIllegalStateException().isThrownBy(() -> ArmoredAsciiSigner.get(signingKey, this.passphrase))
 			.withMessage("Unable to read signing key");
 	}
 
 	@Test
-	void getWithStringSigningKeyWhenPassphraseIsNullThrowsException() {
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, null))
+	void getWhenPassphraseIsNullThrowsException() {
+		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get(this.signingKeyContent, null))
 			.withMessage("Passphrase must not be null");
 	}
 
 	@Test
-	void getWithStringSigningKeyWhenPassphraseIsWrongThrowsException() {
-		assertThatIllegalStateException().isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, this.signingKeyFile, "bad"))
-			.withMessage("Unable to extract private key");
-	}
-
-	@Test
-	void getWithFileSigningKeyKeyReturnsSigner() throws IOException {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyFile, this.passphrase);
-		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSignature);
-	}
-
-	@Test
-	void getWithFileSigningKeyWhenClockIsNullThrowsException() {
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(null, this.signingKeyFile, this.passphrase))
-			.withMessage("Clock must not be null");
-	}
-
-	@Test
-	void getWithFileSigningKeyWhenSigningKeyIsNullThrowsException() {
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, (File) null, this.passphrase))
-			.withMessage("SigningKey must not be null");
-	}
-
-	@Test
-	void getWithFileSigningKeyWhenSigningKeyIsMalformedThrowsException() throws Exception {
-		File signingKey = copyClasspathFile("test-bad-private.txt");
-		assertThatIllegalStateException().isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, signingKey, this.passphrase))
-			.withMessage("Unable to read signing key");
-	}
-
-	@Test
-	void getWithFileSigningKeyWhenPassphraseIsNullThrowsException() {
-		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, this.signingKeyFile, null))
-			.withMessage("Passphrase must not be null");
-	}
-
-	@Test
-	void getWithFileSigningKeyWhenPassphraseIsWrongThrowsException() {
-		assertThatIllegalStateException().isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, this.signingKeyFile, "bad"))
-			.withMessage("Unable to extract private key");
-	}
-
-	@Test
-	void getWithInputStreamSourceSigningKeyKeyReturnsSigner() throws Exception {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyResource, this.passphrase);
-		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSignature);
-	}
-
-	@Test
-	void getWithInputStreamSourceSigningKeyWhenClockIsNullThrowsException() {
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(null, this.signingKeyResource, this.passphrase))
-			.withMessage("Clock must not be null");
-	}
-
-	@Test
-	void getWithInputStreamSourceSigningKeyWhenSigningKeyIsNullThrowsException() {
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, (InputStreamSource) null, this.passphrase))
-			.withMessage("SigningKey must not be null");
-	}
-
-	@Test
-	void getWithInputStreamSourceSigningKeyWhenSigningKeyIsMalformedThrowsException() throws Exception {
-		File signingKeyFile = copyClasspathFile("test-bad-private.txt");
-		Resource signingKeyResource = new FileSystemResource(signingKeyFile);
-		assertThatIllegalStateException().isThrownBy(() -> ArmoredAsciiSigner.get(signingKeyResource, this.passphrase))
-			.withMessage("Unable to read signing key");
-	}
-
-	@Test
-	void getWithInputStreamSourceSigningKeyWhenPassphraseIsNullThrowsException() {
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, this.signingKeyResource, null))
-			.withMessage("Passphrase must not be null");
-	}
-
-	@Test
-	void getWithInputStreamSourceSigningKeyWhenPassphraseIsWrongThrowsException() {
-		assertThatIllegalStateException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, this.signingKeyResource, "bad"))
-			.withMessage("Unable to extract private key");
-	}
-
-	@Test
-	void getWithInputStreamSigningKeyKeyReturnsSigner() {
-		assertThatIllegalStateException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, new FileInputStream(this.signingKeyFile), "bad"))
-			.withMessage("Unable to extract private key");
-	}
-
-	@Test
-	void getWithInputStreamSigningKeyWhenClockIsNullThrowsException() {
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(null, new FileInputStream(this.signingKeyFile), this.passphrase))
-			.withMessage("Clock must not be null");
-	}
-
-	@Test
-	void getWithInputStreamSigningKeyWhenSigningKeyIsNullThrowsException() {
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, (InputStream) null, this.passphrase))
-			.withMessage("SigningKey must not be null");
-	}
-
-	@Test
-	void getWithInputStreamSigningKeyWhenSigningKeyIsMalformedThrowsException() throws Exception {
-		File signingKey = copyClasspathFile("test-bad-private.txt");
-		assertThatIllegalStateException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, new FileInputStream(signingKey), this.passphrase))
-			.withMessage("Unable to read signing key");
-	}
-
-	@Test
-	void getWithInputStreamSigningKeyWhenPassphraseIsNullThrowsException() {
-		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, new FileInputStream(this.signingKeyFile), null))
-			.withMessage("Passphrase must not be null");
-	}
-
-	@Test
-	void getWithInputStreamSigningKeyWhenPassphraseIsWrongThrowsException() {
-		assertThatIllegalStateException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, new FileInputStream(this.signingKeyFile), "bad"))
+	void getWhenPassphraseIsWrongThrowsException() {
+		assertThatIllegalStateException().isThrownBy(() -> ArmoredAsciiSigner.get(this.signingKeyContent, "bad"))
 			.withMessage("Unable to extract private key");
 	}
 
