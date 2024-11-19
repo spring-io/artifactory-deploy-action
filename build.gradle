@@ -42,7 +42,7 @@ dependencies {
 
 	implementation(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))
 
-	implementation("org.bouncycastle:bcpg-jdk18on:1.77")
+	implementation("org.bouncycastle:bcpg-jdk18on:1.79")
 	implementation("org.springframework:spring-web")
 	implementation("org.springframework.boot:spring-boot-starter-json")
 

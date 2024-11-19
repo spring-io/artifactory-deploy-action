@@ -199,7 +199,8 @@ public final class ArmoredAsciiSigner {
 	}
 
 	private PGPSignatureGenerator getSignatureGenerator() throws PGPException {
-		PGPSignatureGenerator signatureGenerator = new PGPSignatureGenerator(this.contentSigner);
+		PGPSignatureGenerator signatureGenerator = new PGPSignatureGenerator(this.contentSigner,
+				this.signingKey.getPublicKey());
 		signatureGenerator.init(PGPSignature.BINARY_DOCUMENT, this.privateKey);
 		PGPSignatureSubpacketGenerator subpacketGenerator = getSignatureSubpacketGenerator();
 		signatureGenerator.setHashedSubpackets(subpacketGenerator.generate());
