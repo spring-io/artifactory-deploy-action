@@ -74,20 +74,20 @@ public final class ArmoredAsciiSigner {
 
 	private final Clock clock;
 
-	private ArmoredAsciiSigner(Clock clock, InputStream signingKeyInputStream, String passphrase) {
-		PGPSecretKey signingKey = getSigningKey(signingKeyInputStream);
+	private ArmoredAsciiSigner(Clock clock, InputStream signingKeyInputStream, String passphrase, String keyId) {
+		PGPSecretKey signingKey = getSigningKey(signingKeyInputStream, keyId);
 		this.clock = clock;
 		this.signingKey = signingKey;
 		this.privateKey = extractPrivateKey(passphrase, signingKey);
 		this.contentSigner = getContentSigner(signingKey.getPublicKey().getAlgorithm());
 	}
 
-	private PGPSecretKey getSigningKey(InputStream inputStream) {
+	private PGPSecretKey getSigningKey(InputStream inputStream, String keyId) {
 		try {
 			try (InputStream decoderStream = PGPUtil.getDecoderStream(inputStream)) {
 				PGPSecretKeyRingCollection keyrings = new PGPSecretKeyRingCollection(decoderStream,
 						FINGERPRINT_CALCULATOR);
-				return getSigningKey(keyrings);
+				return getSigningKey(keyrings, keyId);
 			}
 		}
 		catch (Exception ex) {
@@ -95,16 +95,23 @@ public final class ArmoredAsciiSigner {
 		}
 	}
 
-	private PGPSecretKey getSigningKey(PGPSecretKeyRingCollection keyrings) {
+	private PGPSecretKey getSigningKey(PGPSecretKeyRingCollection keyrings, String keyId) {
 		for (PGPSecretKeyRing keyring : keyrings) {
 			Iterable<PGPSecretKey> secretKeys = keyring::getSecretKeys;
 			for (PGPSecretKey candidate : secretKeys) {
-				if (candidate.isSigningKey()) {
+				if (keyId != null) {
+					String candidateKeyId = String.format("%08X", 0xFFFFFFFFL & candidate.getKeyID());
+					if (keyId.equals(candidateKeyId)) {
+						return candidate;
+					}
+				}
+				else if (candidate.isSigningKey()) {
 					return candidate;
 				}
 			}
 		}
-		throw new IllegalArgumentException("Keyring does not contain a suitable signing key");
+		throw new IllegalArgumentException((keyId != null) ? "Keyring does not contain key '%s'".formatted(keyId)
+				: "Keyring does not contain a suitable signing key");
 	}
 
 	private PGPPrivateKey extractPrivateKey(String passphrase, PGPSecretKey signingKey) {
@@ -212,30 +219,33 @@ public final class ArmoredAsciiSigner {
 	}
 
 	/**
-	 * Get an {@link ArmoredAsciiSigner} for the given {@code signingKey} and
-	 * {@code passphrase}. The signing key may either contain a PGP private key block or
-	 * reference a file.
+	 * Get an {@link ArmoredAsciiSigner} for the given {@code signingKey},
+	 * {@code passphrase}, and {@code keyId}. The signing key may either contain a PGP
+	 * private key block or reference a file. The key with the given {@code keyId} will be
+	 * used for signing. If {@code keyId} is {@code null} that first key that is a
+	 * {@link PGPSecretKey#isSigningKey() is a signing key} will be used.
 	 * @param signingKey the signing key (either the key itself or a reference to a file)
 	 * @param passphrase the passphrase to use
+	 * @param keyId the ID of the key to use
 	 * @return an {@link ArmoredAsciiSigner} insance
 	 * @throws IOException on IO error
 	 */
-	public static ArmoredAsciiSigner get(String signingKey, String passphrase) throws IOException {
-		return get(Clock.systemDefaultZone(), signingKey, passphrase);
+	public static ArmoredAsciiSigner get(String signingKey, String passphrase, String keyId) throws IOException {
+		return get(Clock.systemDefaultZone(), signingKey, passphrase, keyId);
 	}
 
-	static ArmoredAsciiSigner get(Clock clock, String signingKey, String passphrase) throws IOException {
+	static ArmoredAsciiSigner get(Clock clock, String signingKey, String passphrase, String keyId) throws IOException {
 		Assert.notNull(clock, "Clock must not be null");
 		Assert.notNull(signingKey, "SigningKey must not be null");
 		Assert.hasText(signingKey, "SigningKey must not be empty");
 		Assert.notNull(passphrase, "Passphrase must not be null");
 		if (isArmoredAscii(signingKey)) {
 			byte[] bytes = signingKey.getBytes(StandardCharsets.UTF_8);
-			return new ArmoredAsciiSigner(clock, new ByteArrayInputStream(bytes), passphrase);
+			return new ArmoredAsciiSigner(clock, new ByteArrayInputStream(bytes), passphrase, keyId);
 		}
 		Assert.isTrue(!signingKey.contains("\n"),
 				"Signing key does not contain a PGP private key block and does not reference a file");
-		return new ArmoredAsciiSigner(clock, new FileInputStream(signingKey), passphrase);
+		return new ArmoredAsciiSigner(clock, new FileInputStream(signingKey), passphrase, keyId);
 	}
 
 	private static boolean isArmoredAscii(String signingKey) {

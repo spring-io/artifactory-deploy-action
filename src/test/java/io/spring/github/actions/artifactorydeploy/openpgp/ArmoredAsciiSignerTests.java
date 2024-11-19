@@ -53,7 +53,11 @@ class ArmoredAsciiSignerTests {
 
 	private File signingKeyFile;
 
+	private File signingSubkeyFile;
+
 	private String signingKeyContent;
+
+	private String signingSubkeyContent;
 
 	private String passphrase = "password";
 
@@ -63,117 +67,161 @@ class ArmoredAsciiSignerTests {
 
 	private String expectedSignature;
 
+	private String expectedSubkeySignature;
+
 	private File temp;
 
 	@BeforeEach
 	void setup(@TempDir File temp) throws Exception {
 		this.temp = temp;
 		this.signingKeyFile = copyClasspathFile("test-private.txt");
+		this.signingSubkeyFile = copyClasspathFile("test-private-subkey.txt");
 		this.signingKeyContent = copyToString(this.signingKeyFile);
+		this.signingSubkeyContent = copyToString(this.signingSubkeyFile);
 		this.sourceFile = copyClasspathFile("source.txt");
 		this.sourceContent = copyToString(this.sourceFile);
 		this.expectedSignature = copyToString(ArmoredAsciiSignerTests.class.getResourceAsStream("expected.asc"));
+		this.expectedSubkeySignature = copyToString(
+				ArmoredAsciiSignerTests.class.getResourceAsStream("subkey-expected.asc"));
 	}
 
 	@Test
 	void getWhenSigningKeyIsKeyReturnsSigner() throws Exception {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSignature);
+	}
+
+	@Test
+	void getWhenSigningKeyIsKeyAndIdMatchesReturnsSigner() throws Exception {
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, "414E73D1");
+		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSignature);
+	}
+
+	@Test
+	void getWhenSigningKeyIsSubkeyAndIdMatchesReturnsSigner() throws Exception {
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingSubkeyContent, this.passphrase,
+				"C3E2E826");
+		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSubkeySignature);
 	}
 
 	@Test
 	void getWhenSigningKeyIsFileReturnsSigner() throws Exception {
 		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyFile.getAbsolutePath(),
-				this.passphrase);
+				this.passphrase, null);
 		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSignature);
+	}
+
+	@Test
+	void getWhenSigningKeyIsFileAndIdMatchesReturnsSigner() throws Exception {
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyFile.getAbsolutePath(),
+				this.passphrase, "414E73D1");
+		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSignature);
+	}
+
+	@Test
+	void getWhenSigningKeyIsSubkeyFileAndIdMatchesReturnsSigner() throws Exception {
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingSubkeyFile.getAbsolutePath(),
+				this.passphrase, "C3E2E826");
+		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSubkeySignature);
 	}
 
 	@Test
 	void getWhenClockIsNullThrowsException() {
 		assertThatIllegalArgumentException()
-			.isThrownBy(() -> ArmoredAsciiSigner.get((Clock) null, this.signingKeyContent, this.passphrase))
+			.isThrownBy(() -> ArmoredAsciiSigner.get((Clock) null, this.signingKeyContent, this.passphrase, null))
 			.withMessage("Clock must not be null");
 	}
 
 	@Test
 	void getWhenSigningKeyIsNullThrowsException() {
-		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get((String) null, this.passphrase))
+		assertThatIllegalArgumentException()
+			.isThrownBy(() -> ArmoredAsciiSigner.get((String) null, this.passphrase, null))
 			.withMessage("SigningKey must not be null");
 	}
 
 	@Test
 	void getWhenSigningKeyIsEmptyThrowsException() {
-		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get("", this.passphrase))
+		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get("", this.passphrase, null))
 			.withMessage("SigningKey must not be empty");
 	}
 
 	@Test
 	void getWhenSigningKeyIsMultiLineWithoutHeaderThrowsException() {
-		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get("ab\ncd", this.passphrase))
+		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get("ab\ncd", this.passphrase, null))
 			.withMessage("Signing key does not contain a PGP private key block and does not reference a file");
 	}
 
 	@Test
 	void getWhenSigningKeyIsMalformedThrowsException() throws Exception {
 		String signingKey = copyToString(getClass().getResourceAsStream("test-bad-private.txt"));
-		assertThatIllegalStateException().isThrownBy(() -> ArmoredAsciiSigner.get(signingKey, this.passphrase))
+		assertThatIllegalStateException().isThrownBy(() -> ArmoredAsciiSigner.get(signingKey, this.passphrase, null))
 			.withMessage("Unable to read signing key");
 	}
 
 	@Test
 	void getWhenPassphraseIsNullThrowsException() {
-		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get(this.signingKeyContent, null))
+		assertThatIllegalArgumentException()
+			.isThrownBy(() -> ArmoredAsciiSigner.get(this.signingKeyContent, null, null))
 			.withMessage("Passphrase must not be null");
 	}
 
 	@Test
 	void getWhenPassphraseIsWrongThrowsException() {
-		assertThatIllegalStateException().isThrownBy(() -> ArmoredAsciiSigner.get(this.signingKeyContent, "bad"))
+		assertThatIllegalStateException().isThrownBy(() -> ArmoredAsciiSigner.get(this.signingKeyContent, "bad", null))
 			.withMessage("Unable to extract private key");
 	}
 
 	@Test
+	void getWhenKeyIdDoesNotMatchThrowsException() {
+		assertThatIllegalStateException()
+			.isThrownBy(() -> ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, "ABCD1234"))
+			.withMessage("Unable to read signing key")
+			.havingCause()
+			.withMessage("Keyring does not contain key 'ABCD1234'");
+	}
+
+	@Test
 	void signWithStringReturnsSignature() throws Exception {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThat(signer.sign(this.sourceContent)).isEqualTo(this.expectedSignature);
 	}
 
 	@Test
 	void signWithStringWhenSourceIsNullThrowsException() throws Exception {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThatIllegalArgumentException().isThrownBy(() -> signer.sign((String) null))
 			.withMessage("Source must not be null");
 	}
 
 	@Test
 	void signWithInputStreamSourceReturnsSignature() throws Exception {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThat(signer.sign(new FileSystemResource(this.sourceFile))).isEqualTo(this.expectedSignature);
 	}
 
 	@Test
 	void signWithInputStreamSourceWhenSourceIsNullThrowsException() throws Exception {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThatIllegalArgumentException().isThrownBy(() -> signer.sign((InputStreamSource) null))
 			.withMessage("Source must not be null");
 	}
 
 	@Test
 	void signWithInputStreamReturnsSignature() throws Exception {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThat(signer.sign(new FileInputStream(this.sourceFile))).isEqualTo(this.expectedSignature);
 	}
 
 	@Test
 	void signWithInputStreamWhenSourceIsNullThrowsException() throws Exception {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThatIllegalArgumentException().isThrownBy(() -> signer.sign((InputStream) null))
 			.withMessage("Source must not be null");
 	}
 
 	@Test
 	void signWithInputStreamAndOutputStreamWritesSignature() throws Exception {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		ByteArrayOutputStream destination = new ByteArrayOutputStream();
 		signer.sign(new FileInputStream(this.sourceFile), destination);
 		assertThat(destination.toByteArray()).asString(StandardCharsets.UTF_8).isEqualTo(this.expectedSignature);
@@ -181,14 +229,14 @@ class ArmoredAsciiSignerTests {
 
 	@Test
 	void signWithInputStreamAndOutputStreamWritesWhenSourceIsNullThrowsException() throws IOException {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThatIllegalArgumentException().isThrownBy(() -> signer.sign(null, new ByteArrayOutputStream()))
 			.withMessage("Source must not be null");
 	}
 
 	@Test
 	void signWithInputStreamAndOutputStreamWritesWhenDestinationIsNullThrowsException() throws Exception {
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThatIllegalArgumentException().isThrownBy(() -> signer.sign(new FileInputStream(this.sourceFile), null))
 			.withMessage("Destination must not be null");
 	}
@@ -197,7 +245,7 @@ class ArmoredAsciiSignerTests {
 	void signWithClockTickReturnsDifferentContent() throws Exception {
 		Clock clock = mock(Clock.class);
 		given(clock.instant()).willReturn(FIXED.instant(), Clock.offset(FIXED, Duration.ofSeconds(2)).instant());
-		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(clock, this.signingKeyContent, this.passphrase);
+		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(clock, this.signingKeyContent, this.passphrase, null);
 		String signatureOne = signer.sign(this.sourceContent);
 		String signatureTwo = signer.sign(this.sourceContent);
 		assertThat(signatureOne).isNotEqualTo(signatureTwo);

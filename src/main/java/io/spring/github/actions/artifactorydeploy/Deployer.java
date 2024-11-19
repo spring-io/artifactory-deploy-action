@@ -168,15 +168,15 @@ public class Deployer {
 		if (signing == null || !StringUtils.hasText(signing.key())) {
 			return batchedArtifacts;
 		}
-		return signArtifacts(batchedArtifacts, signing.key(), signing.passphrase(), buildProperties);
+		return signArtifacts(batchedArtifacts, signing.key(), signing.passphrase(), signing.keyId(), buildProperties);
 	}
 
 	private MultiValueMap<Category, DeployableArtifact> signArtifacts(
 			MultiValueMap<Category, DeployableArtifact> batchedArtifacts, String signingKey, String signingPassphrase,
-			Map<String, String> buildProperties) {
+			String signingKeyId, Map<String, String> buildProperties) {
 		try {
 			console.log("Signing artifacts");
-			ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(signingKey, signingPassphrase);
+			ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(signingKey, signingPassphrase, signingKeyId);
 			return new DeployableArtifactsSigner(signer, buildProperties).addSignatures(batchedArtifacts);
 		}
 		catch (IOException ex) {

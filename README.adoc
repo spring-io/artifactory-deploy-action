@@ -39,6 +39,8 @@ It makes use of the "builds" and "artifact properties" features of Artifactory t
   Defaults to 1
 - `signing-key`: A PGP/GPG signing key that will be used to sign artifacts before they are deployed
 - `signing-passphrase`: Passphrase of the signing key
+- `signing-key-id`: ID of the signing key that will be used.
+  When omitted, the first key that is a signing key will be used
 
 
 

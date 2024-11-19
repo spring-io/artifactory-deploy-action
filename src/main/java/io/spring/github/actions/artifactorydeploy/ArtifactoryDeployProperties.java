@@ -49,7 +49,7 @@ public record ArtifactoryDeployProperties(@DefaultValue ArtifactoryDeployPropert
 
 	}
 
-	public record Signing(String key, String passphrase) {
+	public record Signing(String key, String passphrase, String keyId) {
 	}
 
 	public record Deploy(String project, String folder, String repository, int threads, Deploy.Build build,

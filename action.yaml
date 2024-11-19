@@ -39,6 +39,9 @@ inputs:
   signing-passphrase:
     description: 'Passphrase of the signing key'
     required: false
+  signing-key-id:
+    description: 'ID of the signing key that will be used. When omitted, the first key that is a signing key will be used'
+    required: false
   artifact-properties:
     description: 'Properties to apply to the deployed artifacts. Each line should be of the form
       `<includes>:<excludes>:<properties>. includes and excludes are comma-separated Ant patterns.
@@ -60,3 +63,4 @@ runs:
     - --artifactory.deploy.threads=${{ inputs.threads }}
     - --artifactory.signing.key=${{ inputs.signing-key }}
     - --artifactory.signing.passphrase=${{ inputs.signing-passphrase }}
+    - --artifactory.signing.key-id=${{ inputs.signing-key-id }}
