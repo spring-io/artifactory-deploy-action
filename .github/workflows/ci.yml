@@ -1,0 +1,30 @@
+name: CI
+on:
+  - push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  build:
+    name: 'Build'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Build
+        uses: ./.github/actions/build
+  integration-test:
+    name: 'Integration test'
+    runs-on: ubuntu-latest
+    services:
+      artifactory:
+        image: docker.bintray.io/jfrog/artifactory-oss:7.12.10
+        ports:
+          - 8081:8081
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Integration test
+        uses: ./.github/actions/integration-test
+        with:
+          signing-key: ${{ secrets.INTEGRATION_TEST_SIGNING_KEY }}
+          signing-passphrase: ${{ secrets.INTEGRATION_TEST_SIGNING_PASSPHRASE }}

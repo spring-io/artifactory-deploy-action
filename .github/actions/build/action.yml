@@ -1,0 +1,30 @@
+name: Build
+description: 'Builds the project'
+outputs:
+  version:
+    description: 'Version that was built'
+    value: ${{ steps.read-version.outputs.version }}
+runs:
+  using: composite
+  steps:
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'liberica'
+        java-version: 17
+    - name: Check out code
+      uses: actions/checkout@v4
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5
+      with:
+        cache-read-only: false
+    - name: Build
+      run: ./gradlew build
+      shell: bash
+    - id: read-version
+      name: Read Version From gradle.properties
+      run: |
+        version=$(sed -n 's/version=\(.*\)/\1/p' gradle.properties)
+        echo "Version is $version"
+        echo "version=$version" >> $GITHUB_OUTPUT
+      shell: bash
