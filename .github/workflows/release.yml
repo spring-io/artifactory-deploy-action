@@ -1,0 +1,49 @@
+name: Release
+on:
+  push:
+    tags:
+      - v0.0.[0-9]+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  build:
+    name: 'Build'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Build
+        id: build
+        uses: ./.github/actions/build
+    outputs:
+      version: ${{ steps.build.outputs.version }}
+  integration-test:
+    name: 'Integration test'
+    runs-on: ubuntu-latest
+    services:
+      artifactory:
+        image: docker.bintray.io/jfrog/artifactory-oss:7.12.10
+        ports:
+          - 8081:8081
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Integration test
+        uses: ./.github/actions/integration-test
+        with:
+          signing-key: ${{ secrets.INTEGRATION_TEST_SIGNING_KEY }}
+          signing-passphrase: ${{ secrets.INTEGRATION_TEST_SIGNING_PASSPHRASE }}
+  create-github-release:
+    name: Create GitHub Release
+    needs:
+      - build
+      - integration-test
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Create GitHub Release
+        uses: ./.github/actions/create-github-release
+        with:
+          milestone: ${{ needs.build.outputs.version }}
+          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
