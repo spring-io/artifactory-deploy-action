@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.BuildModule;
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.DeployableArtifact;
+import io.spring.github.actions.artifactorydeploy.artifactory.payload.Vcs;
 
 /**
  * Provides access to Artifactory.
@@ -56,11 +57,11 @@ public interface Artifactory {
 	 * @param number the number of the build
 	 * @param started the instant at which the build started
 	 * @param uri the URI of the build, typically on a CI server
+	 * @param vcs Version control details
 	 * @param modules the modules produced by the build
 	 *
 	 */
-	record BuildRun(int number, Instant started, URI uri, List<BuildModule> modules) {
-
+	record BuildRun(int number, Instant started, URI uri, Vcs vcs, List<BuildModule> modules) {
 	}
 
 }

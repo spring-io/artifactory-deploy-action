@@ -21,6 +21,10 @@ inputs:
     description: 'URI of the build that produced the artifacts that are to be deployed'
     required: false
     default: ${{ format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
+  vcs-revision:
+    description: 'Last commit hash'
+    required: false
+    default: ${{ github.sha }}
   folder:
     description: 'Folder containing the artifacts to deploy'
     required: true
@@ -64,3 +68,4 @@ runs:
     - --artifactory.signing.key=${{ inputs.signing-key }}
     - --artifactory.signing.passphrase=${{ inputs.signing-passphrase }}
     - --artifactory.signing.key-id=${{ inputs.signing-key-id }}
+    - --artifactory.vcs.revision=${{ inputs.vcs-revision }}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,8 @@ class BuildInfoTests {
 	private static final BuildArtifact ARTIFACT = new BuildArtifact("jar", "a9993e364706816aba3e25717850c26c9cd0d89d",
 			"900150983cd24fb0d6963f7d28e17f72", "foo.jar");
 
+	private static final List<Vcs> VCS = Collections.singletonList(new Vcs("b8993e365706816aba4f25717851a18c9cd0d873"));
+
 	private static final List<BuildModule> MODULES = Collections.singletonList(
 			new BuildModule("com.example.module:my-module:1.0.0-SNAPSHOT", Collections.singletonList(ARTIFACT)));
 
@@ -68,26 +70,27 @@ class BuildInfoTests {
 	@Test
 	void createWhenBuildNameIsEmptyThrowsException() {
 		assertThatIllegalArgumentException()
-			.isThrownBy(() -> new BuildInfo("", BUILD_NUMBER, CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI, MODULES))
+			.isThrownBy(() -> new BuildInfo("", BUILD_NUMBER, CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI, VCS, MODULES))
 			.withMessage("Name must not be empty");
 	}
 
 	@Test
 	void createWhenBuildNumberIsEmptyThrowsException() {
 		assertThatIllegalArgumentException()
-			.isThrownBy(() -> new BuildInfo(BUILD_NAME, "", CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI, MODULES))
+			.isThrownBy(() -> new BuildInfo(BUILD_NAME, "", CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI, VCS, MODULES))
 			.withMessage("Number must not be empty");
 	}
 
 	@Test
 	void createWhenModulesIsNullUsesEmptyList() {
-		BuildInfo buildInfo = new BuildInfo(BUILD_NAME, BUILD_NUMBER, CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI, null);
+		BuildInfo buildInfo = new BuildInfo(BUILD_NAME, BUILD_NUMBER, CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI, VCS,
+				null);
 		assertThat(buildInfo.modules()).isNotNull().isEmpty();
 	}
 
 	@Test
 	void writeSerializesJson() throws Exception {
-		BuildInfo buildInfo = new BuildInfo(BUILD_NAME, BUILD_NUMBER, CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI,
+		BuildInfo buildInfo = new BuildInfo(BUILD_NAME, BUILD_NUMBER, CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI, VCS,
 				MODULES);
 		assertThat(this.json.write(buildInfo)).isEqualToJson("build-info.json");
 	}

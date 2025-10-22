@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ class ArtifactoryDeployIntegrationTests {
 				String.format("--artifactory.server.uri=http://%s:%s/artifactory", container.getHost(),
 						container.getFirstMappedPort()),
 				"--artifactory.server.username=admin", "--artifactory.server.password=password",
+				"--artifactory.vcs.revision=b8993e365706816aba4f25717851a18c9cd0d873",
 				"--artifactory.deploy.repository=example-repo-local", "--artifactory.deploy.build.number=12",
 				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
 				"--artifactory.deploy.threads=2" });
@@ -75,6 +76,9 @@ class ArtifactoryDeployIntegrationTests {
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.number").isEqualTo("12");
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.buildAgent.name").isEqualTo("Artifactory Action");
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.agent.name").isEqualTo("GitHub Actions");
+		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.vcs").hasSize(1);
+		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.vcs.[0].revision")
+			.isEqualTo("b8993e365706816aba4f25717851a18c9cd0d873");
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules").hasSize(1);
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules.[0].artifacts").hasSize(2);
 	}
@@ -89,6 +93,7 @@ class ArtifactoryDeployIntegrationTests {
 				String.format("--artifactory.server.uri=http://%s:%s/artifactory", container.getHost(),
 						container.getFirstMappedPort()),
 				"--artifactory.server.username=admin", "--artifactory.server.password=password",
+				"--artifactory.vcs.revision=b8993e365706816aba4f25717851a18c9cd0d873",
 				"--artifactory.deploy.repository=example-repo-local", "--artifactory.deploy.build.number=13",
 				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
 				"--artifactory.deploy.threads=2",
@@ -109,6 +114,9 @@ class ArtifactoryDeployIntegrationTests {
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.number").isEqualTo("13");
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.buildAgent.name").isEqualTo("Artifactory Action");
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.agent.name").isEqualTo("GitHub Actions");
+		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.vcs").hasSize(1);
+		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.vcs.[0].revision")
+			.isEqualTo("b8993e365706816aba4f25717851a18c9cd0d873");
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules").hasSize(1);
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules.[0].artifacts").hasSize(2);
 		String zipProperties = rest.getForObject(
@@ -138,6 +146,7 @@ class ArtifactoryDeployIntegrationTests {
 				String.format("--artifactory.server.uri=http://%s:%s/artifactory", container.getHost(),
 						container.getFirstMappedPort()),
 				"--artifactory.server.username=admin", "--artifactory.server.password=password",
+				"--artifactory.vcs.revision=b8993e365706816aba4f25717851a18c9cd0d873",
 				"--artifactory.deploy.repository=example-repo-local", "--artifactory.deploy.build.number=14",
 				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
 				"--artifactory.deploy.threads=2",
@@ -162,6 +171,9 @@ class ArtifactoryDeployIntegrationTests {
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.number").isEqualTo("14");
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.buildAgent.name").isEqualTo("Artifactory Action");
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.agent.name").isEqualTo("GitHub Actions");
+		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.vcs").hasSize(1);
+		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.vcs.[0].revision")
+			.isEqualTo("b8993e365706816aba4f25717851a18c9cd0d873");
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules").hasSize(1);
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules.[0].artifacts").hasSize(4);
 	}
@@ -176,6 +188,7 @@ class ArtifactoryDeployIntegrationTests {
 				String.format("--artifactory.server.uri=http://%s:%s/artifactory", container.getHost(),
 						container.getFirstMappedPort()),
 				"--artifactory.server.username=admin", "--artifactory.server.password=password",
+				"--artifactory.vcs.revision=b8993e365706816aba4f25717851a18c9cd0d873",
 				"--artifactory.deploy.repository=example-repo-local", "--artifactory.deploy.build.number=15",
 				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
 				"--artifactory.deploy.threads=2",
@@ -201,6 +214,9 @@ class ArtifactoryDeployIntegrationTests {
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.number").isEqualTo("15");
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.buildAgent.name").isEqualTo("Artifactory Action");
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.agent.name").isEqualTo("GitHub Actions");
+		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.vcs").hasSize(1);
+		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.vcs.[0].revision")
+			.isEqualTo("b8993e365706816aba4f25717851a18c9cd0d873");
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules").hasSize(1);
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules.[0].artifacts").hasSize(4);
 	}

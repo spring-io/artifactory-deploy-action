@@ -9,6 +9,9 @@
 	},
 	"started": "2014-09-30T12:00:19.893Z",
 	"url": "https://ci.example.com",
+	"vcs": [{
+		"revision": "b8993e365706816aba4f25717851a18c9cd0d873"
+	}],
 	"modules": [{
 		"id": "com.example.module:my-module:1.0.0-SNAPSHOT",
 		"artifacts": [{
