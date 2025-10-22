@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import io.spring.github.actions.artifactorydeploy.artifactory.Artifactory.BuildR
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.BuildModule;
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.DeployableArtifact;
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.DeployableFileArtifact;
+import io.spring.github.actions.artifactorydeploy.artifactory.payload.Vcs;
 import io.spring.github.actions.artifactorydeploy.io.DirectoryScanner;
 import io.spring.github.actions.artifactorydeploy.io.FileSet;
 import io.spring.github.actions.artifactorydeploy.io.FileSet.Category;
@@ -248,9 +249,10 @@ public class Deployer {
 			.collect(Collectors.toList());
 		console.debug("Adding build run {}", buildNumber);
 		List<BuildModule> modules = new MavenBuildModulesGenerator().getBuildModules(artifacts);
+		Vcs vcs = new Vcs(this.artifactoryProperties.vcs().revision());
 		this.artifactory.addBuildRun(this.artifactoryProperties.deploy().project(),
 				this.artifactoryProperties.deploy().build().name(),
-				new BuildRun(buildNumber, started, this.artifactoryProperties.deploy().build().uri(), modules));
+				new BuildRun(buildNumber, started, this.artifactoryProperties.deploy().build().uri(), vcs, modules));
 	}
 
 }

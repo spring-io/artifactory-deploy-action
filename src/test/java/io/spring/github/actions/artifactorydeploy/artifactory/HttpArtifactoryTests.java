@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import io.spring.github.actions.artifactorydeploy.artifactory.payload.BuildArtif
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.BuildModule;
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.DeployableArtifact;
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.DeployableFileArtifact;
+import io.spring.github.actions.artifactorydeploy.artifactory.payload.Vcs;
 import org.json.JSONException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -248,11 +249,12 @@ class HttpArtifactoryTests {
 		BuildArtifact artifact = new BuildArtifact("jar", "a9993e364706816aba3e25717850c26c9cd0d89d",
 				"900150983cd24fb0d6963f7d28e17f72", "foo.jar");
 		List<BuildArtifact> artifacts = Collections.singletonList(artifact);
+		Vcs vcs = new Vcs("b8993e365706816aba4f25717851a18c9cd0d873");
 		List<BuildModule> modules = Collections
 			.singletonList(new BuildModule("com.example.module:my-module:1.0.0-SNAPSHOT", artifacts));
 		Instant started = ZonedDateTime.parse("2014-09-30T12:00:19.893Z", DateTimeFormatter.ISO_DATE_TIME).toInstant();
 		this.artifactory.addBuildRun(null, "my-build",
-				new BuildRun(5678, started, URI.create("https://ci.example.com"), modules));
+				new BuildRun(5678, started, URI.create("https://ci.example.com"), vcs, modules));
 		this.server.verify();
 	}
 
@@ -266,11 +268,12 @@ class HttpArtifactoryTests {
 		BuildArtifact artifact = new BuildArtifact("jar", "a9993e364706816aba3e25717850c26c9cd0d89d",
 				"900150983cd24fb0d6963f7d28e17f72", "foo.jar");
 		List<BuildArtifact> artifacts = Collections.singletonList(artifact);
+		Vcs vcs = new Vcs("b8993e365706816aba4f25717851a18c9cd0d873");
 		List<BuildModule> modules = Collections
 			.singletonList(new BuildModule("com.example.module:my-module:1.0.0-SNAPSHOT", artifacts));
 		Instant started = ZonedDateTime.parse("2014-09-30T12:00:19.893Z", DateTimeFormatter.ISO_DATE_TIME).toInstant();
 		this.artifactory.addBuildRun("my-project", "my-build",
-				new BuildRun(5678, started, URI.create("https://ci.example.com"), modules));
+				new BuildRun(5678, started, URI.create("https://ci.example.com"), vcs, modules));
 		this.server.verify();
 	}
 
