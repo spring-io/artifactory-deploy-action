@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,13 @@ import org.springframework.util.Assert;
  *
  * @param server server properties
  * @param signing signing properties
+ * @param vcs version control properties
  * @param deploy deploy properties
  * @author Andy Wilkinson
  */
 @ConfigurationProperties(prefix = "artifactory")
 public record ArtifactoryDeployProperties(@DefaultValue ArtifactoryDeployProperties.Server server,
-		@DefaultValue ArtifactoryDeployProperties.Signing signing,
+		@DefaultValue ArtifactoryDeployProperties.Signing signing, @DefaultValue ArtifactoryDeployProperties.Vcs vcs,
 		@DefaultValue ArtifactoryDeployProperties.Deploy deploy) {
 
 	public record Server(URI uri, String username, String password) {
@@ -50,6 +51,9 @@ public record ArtifactoryDeployProperties(@DefaultValue ArtifactoryDeployPropert
 	}
 
 	public record Signing(String key, String passphrase, String keyId) {
+	}
+
+	public record Vcs(String revision) {
 	}
 
 	public record Deploy(String project, String folder, String repository, int threads, Deploy.Build build,

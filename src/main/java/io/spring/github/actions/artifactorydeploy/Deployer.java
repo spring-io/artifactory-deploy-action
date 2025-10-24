@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package io.spring.github.actions.artifactorydeploy;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +42,7 @@ import io.spring.github.actions.artifactorydeploy.artifactory.Artifactory.BuildR
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.BuildModule;
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.DeployableArtifact;
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.DeployableFileArtifact;
+import io.spring.github.actions.artifactorydeploy.artifactory.payload.Vcs;
 import io.spring.github.actions.artifactorydeploy.io.DirectoryScanner;
 import io.spring.github.actions.artifactorydeploy.io.FileSet;
 import io.spring.github.actions.artifactorydeploy.io.FileSet.Category;
@@ -242,15 +244,31 @@ public class Deployer {
 
 	private void addBuildRun(int buildNumber, Instant started,
 			MultiValueMap<Category, DeployableArtifact> batchedArtifacts) {
+		console.debug("Adding build run {}", buildNumber);
+		this.artifactory.addBuildRun(this.artifactoryProperties.deploy().project(),
+				this.artifactoryProperties.deploy().build().name(),
+				createBuildRun(buildNumber, started, batchedArtifacts));
+	}
+
+	private BuildRun createBuildRun(int buildNumber, Instant started,
+			MultiValueMap<Category, DeployableArtifact> batchedArtifacts) {
+		URI uri = this.artifactoryProperties.deploy().build().uri();
+		Vcs vcs = createVcs();
+		List<BuildModule> modules = asBuildModules(batchedArtifacts);
+		return new BuildRun(buildNumber, started, uri, vcs, modules);
+	}
+
+	private Vcs createVcs() {
+		String revision = this.artifactoryProperties.vcs().revision();
+		return StringUtils.hasText(revision) ? new Vcs(revision) : null;
+	}
+
+	private List<BuildModule> asBuildModules(MultiValueMap<Category, DeployableArtifact> batchedArtifacts) {
 		List<DeployableArtifact> artifacts = batchedArtifacts.values()
 			.stream()
 			.flatMap(List::stream)
 			.collect(Collectors.toList());
-		console.debug("Adding build run {}", buildNumber);
-		List<BuildModule> modules = new MavenBuildModulesGenerator().getBuildModules(artifacts);
-		this.artifactory.addBuildRun(this.artifactoryProperties.deploy().project(),
-				this.artifactoryProperties.deploy().build().name(),
-				new BuildRun(buildNumber, started, this.artifactoryProperties.deploy().build().uri(), modules));
+		return new MavenBuildModulesGenerator().getBuildModules(artifacts);
 	}
 
 }

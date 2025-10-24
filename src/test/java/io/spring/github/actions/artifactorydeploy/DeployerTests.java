@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import io.spring.github.actions.artifactorydeploy.ArtifactoryDeployProperties.De
 import io.spring.github.actions.artifactorydeploy.ArtifactoryDeployProperties.Deploy.ArtifactProperties;
 import io.spring.github.actions.artifactorydeploy.ArtifactoryDeployProperties.Deploy.Build;
 import io.spring.github.actions.artifactorydeploy.ArtifactoryDeployProperties.Server;
+import io.spring.github.actions.artifactorydeploy.ArtifactoryDeployProperties.Vcs;
 import io.spring.github.actions.artifactorydeploy.artifactory.Artifactory;
 import io.spring.github.actions.artifactorydeploy.artifactory.Artifactory.BuildRun;
 import io.spring.github.actions.artifactorydeploy.artifactory.payload.BuildModule;
@@ -330,7 +331,7 @@ class DeployerTests {
 	private ArtifactoryDeployProperties createProperties(int buildNumber, String project,
 			ArtifactProperties artifactProperties) {
 		return new ArtifactoryDeployProperties(new Server(URI.create("https://repo.example.com"), "alice", "secret"),
-				null,
+				null, new Vcs("b8993e365706816aba4f25717851a18c9cd0d873"),
 				new Deploy(project, this.tempDir.getAbsolutePath(), "libs-example-local", 1,
 						new Build("my-build", buildNumber, URI.create("https://ci.example.com/builds/" + buildNumber)),
 						(artifactProperties != null) ? List.of(artifactProperties) : Collections.emptyList()));

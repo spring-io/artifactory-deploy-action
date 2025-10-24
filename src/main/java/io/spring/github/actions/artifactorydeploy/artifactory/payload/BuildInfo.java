@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * @param buildAgent Agent that deployed the build
  * @param started Instant at which the build start
  * @param url URL of the build on the CI server
+ * @param vcs version control systems used for the build
  * @param modules modules produced by the build
  * @author Phillip Webb
  * @author Madhura Bhave
@@ -42,14 +43,14 @@ import org.springframework.util.Assert;
 public record BuildInfo(
 		String name, String number, CiAgent agent, BuildAgent buildAgent, @JsonFormat(shape = JsonFormat.Shape.STRING,
 				pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC") Instant started,
-		String url, List<BuildModule> modules) {
+		String url, List<Vcs> vcs, List<BuildModule> modules) {
 
-	public BuildInfo(String name, String number, Instant started, String url, List<BuildModule> modules) {
-		this(name, number, new CiAgent(), new BuildAgent(), started, url, modules);
+	public BuildInfo(String name, String number, Instant started, String url, Vcs vcs, List<BuildModule> modules) {
+		this(name, number, new CiAgent(), new BuildAgent(), started, url, (vcs != null) ? List.of(vcs) : null, modules);
 	}
 
 	public BuildInfo(String name, String number, CiAgent agent, BuildAgent buildAgent, Instant started, String url,
-			List<BuildModule> modules) {
+			List<Vcs> vcs, List<BuildModule> modules) {
 		Assert.hasText(name, "Name must not be empty");
 		Assert.hasText(number, "Number must not be empty");
 		this.name = name;
@@ -58,6 +59,7 @@ public record BuildInfo(
 		this.buildAgent = buildAgent;
 		this.started = (started != null) ? started : Instant.now();
 		this.url = url;
+		this.vcs = (vcs != null) ? Collections.unmodifiableList(vcs) : Collections.emptyList();
 		this.modules = (modules != null) ? Collections.unmodifiableList(new ArrayList<>(modules))
 				: Collections.emptyList();
 	}

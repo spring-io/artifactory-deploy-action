@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2017-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -191,7 +191,7 @@ class HttpArtifactory implements Artifactory {
 		RequestEntity<BuildInfo> request = RequestEntity.put(uri)
 			.contentType(MediaType.APPLICATION_JSON)
 			.body(new BuildInfo(buildName, Integer.toString(buildRun.number()), buildRun.started(),
-					(buildRun.uri() != null) ? buildRun.uri().toString() : null, buildRun.modules()));
+					(buildRun.uri() != null) ? buildRun.uri().toString() : null, buildRun.vcs(), buildRun.modules()));
 		ResponseEntity<Void> exchange = this.restTemplate.exchange(request, Void.class);
 		exchange.getBody();
 	}
