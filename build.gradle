@@ -14,7 +14,7 @@ java {
 }
 
 checkstyle {
-	toolVersion = "10.13.0"
+	toolVersion = "12.1.0"
 }
 
 def integrationTest = sourceSets.create("integrationTest") {
