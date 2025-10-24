@@ -68,8 +68,8 @@ class HttpArtifactory implements Artifactory {
 
 	HttpArtifactory(RestTemplateBuilder restTemplateBuilder, URI uri, String username, String password,
 			Duration retryDelay) {
-		RestTemplateBuilder builder = restTemplateBuilder.setConnectTimeout(Duration.ofMinutes(1))
-			.setReadTimeout(Duration.ofMinutes(5));
+		RestTemplateBuilder builder = restTemplateBuilder.connectTimeout(Duration.ofMinutes(1))
+			.readTimeout(Duration.ofMinutes(5));
 		if (StringUtils.hasText(username)) {
 			builder = builder.basicAuthentication(username, password);
 		}

@@ -2,7 +2,7 @@ plugins {
 	id "checkstyle"
 	id "io.spring.javaformat" version "$javaFormatVersion"
 	id "java"
-	id "org.springframework.boot" version "3.3.5"
+	id "org.springframework.boot" version "3.5.7"
 }
 
 repositories {
