@@ -18,6 +18,7 @@ package io.spring.github.actions.artifactorydeploy;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
@@ -243,16 +244,31 @@ public class Deployer {
 
 	private void addBuildRun(int buildNumber, Instant started,
 			MultiValueMap<Category, DeployableArtifact> batchedArtifacts) {
+		console.debug("Adding build run {}", buildNumber);
+		this.artifactory.addBuildRun(this.artifactoryProperties.deploy().project(),
+				this.artifactoryProperties.deploy().build().name(),
+				createBuildRun(buildNumber, started, batchedArtifacts));
+	}
+
+	private BuildRun createBuildRun(int buildNumber, Instant started,
+			MultiValueMap<Category, DeployableArtifact> batchedArtifacts) {
+		URI uri = this.artifactoryProperties.deploy().build().uri();
+		Vcs vcs = createVcs();
+		List<BuildModule> modules = asBuildModules(batchedArtifacts);
+		return new BuildRun(buildNumber, started, uri, vcs, modules);
+	}
+
+	private Vcs createVcs() {
+		String revision = this.artifactoryProperties.vcs().revision();
+		return StringUtils.hasText(revision) ? new Vcs(revision) : null;
+	}
+
+	private List<BuildModule> asBuildModules(MultiValueMap<Category, DeployableArtifact> batchedArtifacts) {
 		List<DeployableArtifact> artifacts = batchedArtifacts.values()
 			.stream()
 			.flatMap(List::stream)
 			.collect(Collectors.toList());
-		console.debug("Adding build run {}", buildNumber);
-		List<BuildModule> modules = new MavenBuildModulesGenerator().getBuildModules(artifacts);
-		Vcs vcs = new Vcs(this.artifactoryProperties.vcs().revision());
-		this.artifactory.addBuildRun(this.artifactoryProperties.deploy().project(),
-				this.artifactoryProperties.deploy().build().name(),
-				new BuildRun(buildNumber, started, this.artifactoryProperties.deploy().build().uri(), vcs, modules));
+		return new MavenBuildModulesGenerator().getBuildModules(artifacts);
 	}
 
 }

@@ -57,7 +57,7 @@ public interface Artifactory {
 	 * @param number the number of the build
 	 * @param started the instant at which the build started
 	 * @param uri the URI of the build, typically on a CI server
-	 * @param vcs Version control details
+	 * @param vcs the version control system that was used for the build
 	 * @param modules the modules produced by the build
 	 *
 	 */

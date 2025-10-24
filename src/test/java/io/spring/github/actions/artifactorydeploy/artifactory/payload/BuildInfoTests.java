@@ -89,6 +89,13 @@ class BuildInfoTests {
 	}
 
 	@Test
+	void createWhenVcsIsNullUsesEmptyList() {
+		BuildInfo buildInfo = new BuildInfo(BUILD_NAME, BUILD_NUMBER, CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI, null,
+				MODULES);
+		assertThat(buildInfo.vcs()).isNotNull().isEmpty();
+	}
+
+	@Test
 	void writeSerializesJson() throws Exception {
 		BuildInfo buildInfo = new BuildInfo(BUILD_NAME, BUILD_NUMBER, CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI, VCS,
 				MODULES);

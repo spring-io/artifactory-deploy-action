@@ -17,7 +17,7 @@
 package io.spring.github.actions.artifactorydeploy.artifactory.payload;
 
 /**
- * The VCS information included in {@link BuildInfo}.
+ * Information about a version control system (VCS) used for the build.
  *
  * @param revision the last commit hash
  * @author Josh Cummings

@@ -84,6 +84,38 @@ class ArtifactoryDeployIntegrationTests {
 	}
 
 	@Test
+	void deployWithoutVcsInformation(@TempDir File temp) throws IOException {
+		File example = new File(temp, "com/example/module/1.0.0");
+		example.mkdirs();
+		Files.writeString(new File(example, "module-1.0.0.jar").toPath(), "jar-file-content");
+		Files.writeString(new File(example, "module-1.0.0.pom").toPath(), "pom-file-content");
+		ArtifactoryDeploy.main(new String[] {
+				String.format("--artifactory.server.uri=http://%s:%s/artifactory", container.getHost(),
+						container.getFirstMappedPort()),
+				"--artifactory.server.username=admin", "--artifactory.server.password=password",
+				"--artifactory.deploy.repository=example-repo-local", "--artifactory.deploy.build.number=12",
+				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
+				"--artifactory.deploy.threads=2" });
+		RestTemplate rest = new RestTemplateBuilder().basicAuthentication("admin", "password")
+			.rootUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
+			.build();
+		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
+			.isEqualTo("jar-file-content");
+		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.pom", String.class))
+			.isEqualTo("pom-file-content");
+		String response = rest.getForObject("/api/build/integration-test/12", String.class);
+		System.out.println(response);
+		JsonContent<?> buildInfoJson = new BasicJsonTester(getClass()).from(response);
+		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.name").isEqualTo("integration-test");
+		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.number").isEqualTo("12");
+		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.buildAgent.name").isEqualTo("Artifactory Action");
+		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.agent.name").isEqualTo("GitHub Actions");
+		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.vcs").hasSize(0);
+		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules").hasSize(1);
+		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules.[0].artifacts").hasSize(2);
+	}
+
+	@Test
 	void deployWithArtifactProeprties(@TempDir File temp) throws IOException {
 		File example = new File(temp, "com/example/example-docs/1.0.0");
 		example.mkdirs();

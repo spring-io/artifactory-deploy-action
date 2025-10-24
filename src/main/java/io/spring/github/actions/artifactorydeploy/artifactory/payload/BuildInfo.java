@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * @param buildAgent Agent that deployed the build
  * @param started Instant at which the build start
  * @param url URL of the build on the CI server
- * @param vcs Version control details
+ * @param vcs version control systems used for the build
  * @param modules modules produced by the build
  * @author Phillip Webb
  * @author Madhura Bhave
@@ -46,7 +46,7 @@ public record BuildInfo(
 		String url, List<Vcs> vcs, List<BuildModule> modules) {
 
 	public BuildInfo(String name, String number, Instant started, String url, Vcs vcs, List<BuildModule> modules) {
-		this(name, number, new CiAgent(), new BuildAgent(), started, url, List.of(vcs), modules);
+		this(name, number, new CiAgent(), new BuildAgent(), started, url, (vcs != null) ? List.of(vcs) : null, modules);
 	}
 
 	public BuildInfo(String name, String number, CiAgent agent, BuildAgent buildAgent, Instant started, String url,
@@ -59,7 +59,7 @@ public record BuildInfo(
 		this.buildAgent = buildAgent;
 		this.started = (started != null) ? started : Instant.now();
 		this.url = url;
-		this.vcs = vcs;
+		this.vcs = (vcs != null) ? Collections.unmodifiableList(vcs) : Collections.emptyList();
 		this.modules = (modules != null) ? Collections.unmodifiableList(new ArrayList<>(modules))
 				: Collections.emptyList();
 	}
