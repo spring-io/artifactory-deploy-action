@@ -22,8 +22,10 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import io.spring.github.actions.artifactorydeploy.ArtifactoryDeployProperties.Deploy;
 import io.spring.github.actions.artifactorydeploy.ArtifactoryDeployProperties.Deploy.ArtifactProperties;
@@ -53,6 +55,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -173,8 +176,16 @@ class DeployerTests {
 		files.add(new File(bazs, "baz-0.0.1-sources.jar"));
 		createEmptyFiles(files);
 		given(this.directoryScanner.scan(any())).willReturn(FileSet.of(files));
-		deployer(1234).deploy();
+		Set<Thread> usedThreads = new HashSet<>();
+		willAnswer((invocation) -> {
+			usedThreads.add(Thread.currentThread());
+			return null;
+		}).given(this.artifactory).deploy(eq("libs-example-local"), any(DeployableArtifact.class));
+		int threads = 2;
+		deployer(1234, 2).deploy();
 		verify(this.artifactory, times(12)).deploy(eq("libs-example-local"), this.artifactCaptor.capture());
+		assertThat(usedThreads).hasSizeLessThanOrEqualTo(threads);
+		assertThat(usedThreads.stream().map(Thread::getName)).allSatisfy((name) -> name.startsWith("deployer-"));
 		List<DeployableArtifact> values = this.artifactCaptor.getAllValues();
 		for (int i = 0; i < 3; i++) {
 			assertThat(values.get(i).getPath()).doesNotContain("javadoc", "sources").endsWith(".jar");
@@ -312,7 +323,11 @@ class DeployerTests {
 	}
 
 	private Deployer deployer(int buildNumber) {
-		return deployer(buildNumber, null, null);
+		return deployer(buildNumber, null, null, 1);
+	}
+
+	private Deployer deployer(int buildNumber, int threads) {
+		return deployer(buildNumber, null, null, threads);
 	}
 
 	private Deployer deployer(int buildNumber, ArtifactProperties artifactProperties) {
@@ -324,15 +339,19 @@ class DeployerTests {
 	}
 
 	private Deployer deployer(int buildNumber, String project, ArtifactProperties artifactProperties) {
-		return new Deployer(createProperties(buildNumber, project, artifactProperties), this.artifactory,
+		return deployer(buildNumber, project, artifactProperties, 1);
+	}
+
+	private Deployer deployer(int buildNumber, String project, ArtifactProperties artifactProperties, int threads) {
+		return new Deployer(createProperties(buildNumber, project, artifactProperties, threads), this.artifactory,
 				this.directoryScanner);
 	}
 
 	private ArtifactoryDeployProperties createProperties(int buildNumber, String project,
-			ArtifactProperties artifactProperties) {
+			ArtifactProperties artifactProperties, int threads) {
 		return new ArtifactoryDeployProperties(new Server(URI.create("https://repo.example.com"), "alice", "secret"),
 				null, new Vcs("b8993e365706816aba4f25717851a18c9cd0d873"),
-				new Deploy(project, this.tempDir.getAbsolutePath(), "libs-example-local", 1,
+				new Deploy(project, this.tempDir.getAbsolutePath(), "libs-example-local", threads,
 						new Build("my-build", buildNumber, URI.create("https://ci.example.com/builds/" + buildNumber)),
 						(artifactProperties != null) ? List.of(artifactProperties) : Collections.emptyList()));
 	}

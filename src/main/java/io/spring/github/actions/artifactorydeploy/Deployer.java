@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -53,6 +54,7 @@ import io.spring.github.actions.artifactorydeploy.maven.MavenVersionType;
 import io.spring.github.actions.artifactorydeploy.openpgp.ArmoredAsciiSigner;
 import io.spring.github.actions.artifactorydeploy.system.ConsoleLogger;
 
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
@@ -187,9 +189,10 @@ public class Deployer {
 	}
 
 	private void deployArtifacts(MultiValueMap<Category, DeployableArtifact> batchedArtifacts) {
-		ExecutorService executor = Executors.newFixedThreadPool(this.artifactoryProperties.deploy().threads());
+		ExecutorService executor = Executors.newFixedThreadPool(this.artifactoryProperties.deploy().threads(),
+				new CustomizableThreadFactory("deployer-"));
 		Function<DeployableArtifact, CompletableFuture<?>> deployer = (deployableArtifact) -> getArtifactDeployer(
-				deployableArtifact);
+				deployableArtifact, executor);
 		try {
 			batchedArtifacts.forEach((category, artifacts) -> deploy(category, artifacts, deployer));
 		}
@@ -216,8 +219,8 @@ public class Deployer {
 		}
 	}
 
-	private CompletableFuture<?> getArtifactDeployer(DeployableArtifact deployableArtifact) {
-		return CompletableFuture.runAsync(() -> deployArtifact(deployableArtifact));
+	private CompletableFuture<?> getArtifactDeployer(DeployableArtifact deployableArtifact, Executor executor) {
+		return CompletableFuture.runAsync(() -> deployArtifact(deployableArtifact), executor);
 	}
 
 	private void deployArtifact(DeployableArtifact deployableArtifact) {
