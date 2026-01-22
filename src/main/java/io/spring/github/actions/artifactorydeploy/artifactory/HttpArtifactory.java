@@ -16,7 +16,7 @@
 
 package io.spring.github.actions.artifactorydeploy.artifactory;
 
-import java.net.SocketException;
+import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
@@ -91,7 +91,7 @@ class HttpArtifactory implements Artifactory {
 				deployUsingChecksum(repository, artifact);
 			}
 			catch (Exception ex) {
-				if (!(ex instanceof HttpClientErrorException || isCausedBySocketException(ex))) {
+				if (!(ex instanceof HttpClientErrorException || isCausedByIOException(ex))) {
 					throw ex;
 				}
 				deployUsingContent(repository, artifact);
@@ -123,7 +123,7 @@ class HttpArtifactory implements Artifactory {
 				HttpStatusCode statusCode = (ex instanceof RestClientResponseException restClientException)
 						? restClientException.getStatusCode() : null;
 				boolean flaky = (statusCode == HttpStatus.BAD_REQUEST || statusCode == HttpStatus.NOT_FOUND)
-						|| isCausedBySocketException(ex);
+						|| isCausedByIOException(ex);
 				if (!flaky || attempt >= 3) {
 					throw ex;
 				}
@@ -134,9 +134,9 @@ class HttpArtifactory implements Artifactory {
 		}
 	}
 
-	private boolean isCausedBySocketException(Throwable ex) {
+	private boolean isCausedByIOException(Throwable ex) {
 		while (ex != null) {
-			if (ex instanceof SocketException) {
+			if (ex instanceof IOException) {
 				return true;
 			}
 			ex = ex.getCause();

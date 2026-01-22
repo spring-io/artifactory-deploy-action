@@ -19,7 +19,6 @@ package io.spring.github.actions.artifactorydeploy.artifactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.SocketException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -201,14 +200,14 @@ class HttpArtifactoryTests {
 	}
 
 	@Test
-	void deployWhenFlakySocketExceptionAndLaterAttemptWorksDeploys() {
-		deployWhenFlaky(false, withException(new SocketException()));
+	void deployWhenFlakyIOExceptionAndLaterAttemptWorksDeploys() {
+		deployWhenFlaky(false, withException(new IOException()));
 	}
 
 	@Test
-	void deployWhenFlakySocketExceptionAndLaterAttemptsFailThrowsException() {
+	void deployWhenFlakyIOExceptionAndLaterAttemptsFailThrowsException() {
 		assertThatExceptionOfType(RuntimeException.class)
-			.isThrownBy(() -> deployWhenFlaky(true, withException(new SocketException())))
+			.isThrownBy(() -> deployWhenFlaky(true, withException(new IOException())))
 			.withMessageStartingWith("Error deploying artifact");
 	}
 
