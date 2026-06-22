@@ -6,3 +6,5 @@ pluginManagement {
 }
 
 rootProject.name = 'artifactory-deploy-action'
+
+include 'action', 'library'

@@ -1,0 +1,30 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
+plugins {
+	id "java"
+	id "org.springframework.boot" version "$springBootVersion"
+}
+
+dependencies {
+	implementation(project(":library"))
+	implementation(platform(SpringBootPlugin.BOM_COORDINATES))
+
+	implementation("org.bouncycastle:bcpg-jdk18on:1.79")
+	implementation("org.springframework:spring-web")
+	implementation("org.springframework.boot:spring-boot-starter-json")
+
+	integrationTestImplementation("org.testcontainers:junit-jupiter")
+	integrationTestImplementation("org.testcontainers:testcontainers")
+
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.named("jar") {
+	enabled = false
+}
+
+tasks.named("bootJar") {
+	archiveVersion = ""
+}

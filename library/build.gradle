@@ -1,0 +1,68 @@
+plugins {
+	id "java-library"
+	id "maven-publish"
+}
+
+java {
+	withJavadocJar()
+	withSourcesJar()
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			groupId = 'io.spring.artifactory.deploy'
+			artifactId = 'artifactory-deploy-core'
+
+			from components.java
+
+			// Embed versions into the POM
+			versionMapping {
+				usage("java-api") {
+					fromResolutionOf("runtimeClasspath")
+				}
+				usage("java-runtime") {
+					fromResolutionResult()
+				}
+			}
+
+			// Remove <dependencyManagement> from the published POM
+			pom.withXml {
+				def root = asNode()
+				root.dependencyManagement.each { root.remove(it) }
+			}
+		}
+	}
+	repositories {
+		if (project.hasProperty("deploymentRepository")) {
+			maven {
+				name = 'Deployment'
+				url = project.property("deploymentRepository")
+			}
+		}
+	}
+}
+
+dependencies {
+	implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+
+	api("org.springframework.boot:spring-boot")
+	api("org.springframework:spring-core")
+	api("org.springframework:spring-web")
+	api("com.fasterxml.jackson.core:jackson-annotations")
+
+	implementation("org.slf4j:slf4j-api")
+	implementation("org.bouncycastle:bcpg-jdk18on:1.79")
+
+	testImplementation("org.springframework.boot:spring-boot-starter-web")
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.junit.jupiter:junit-jupiter")
+	testImplementation("org.assertj:assertj-core")
+	testImplementation("org.mockito:mockito-core")
+
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.withType(Javadoc).configureEach {
+	options.addBooleanOption('Werror', true) // fail build on Javadoc warnings
+}
