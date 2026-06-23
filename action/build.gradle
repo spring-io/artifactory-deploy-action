@@ -6,17 +6,16 @@ plugins {
 }
 
 dependencies {
-	implementation(project(":library"))
 	implementation(platform(SpringBootPlugin.BOM_COORDINATES))
 
-	implementation("org.bouncycastle:bcpg-jdk18on:1.79")
-	implementation("org.springframework:spring-web")
-	implementation("org.springframework.boot:spring-boot-starter-json")
+	implementation(project(":library"))
+	implementation("org.springframework.boot:spring-boot-starter-jackson")
 
-	integrationTestImplementation("org.testcontainers:junit-jupiter")
+	integrationTestImplementation("org.testcontainers:testcontainers-junit-jupiter")
 	integrationTestImplementation("org.testcontainers:testcontainers")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-jackson-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-restclient-test")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

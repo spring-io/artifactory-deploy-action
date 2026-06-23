@@ -46,7 +46,7 @@ publishing {
 dependencies {
 	implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
-	api("org.springframework.boot:spring-boot")
+	api("org.springframework.boot:spring-boot-restclient")
 	api("org.springframework:spring-core")
 	api("org.springframework:spring-web")
 	api("com.fasterxml.jackson.core:jackson-annotations")
@@ -54,8 +54,8 @@ dependencies {
 	implementation("org.slf4j:slf4j-api")
 	implementation("org.bouncycastle:bcpg-jdk18on:1.79")
 
-	testImplementation("org.springframework.boot:spring-boot-starter-web")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-restclient-test")
 	testImplementation("org.junit.jupiter:junit-jupiter")
 	testImplementation("org.assertj:assertj-core")
 	testImplementation("org.mockito:mockito-core")

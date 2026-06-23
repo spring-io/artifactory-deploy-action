@@ -46,8 +46,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.skyscreamer.jsonassert.JSONAssert;
 
-import org.springframework.boot.test.web.client.MockServerRestTemplateCustomizer;
-import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.restclient.RestTemplateBuilder;
+import org.springframework.boot.restclient.test.MockServerRestTemplateCustomizer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
@@ -235,7 +235,8 @@ class HttpArtifactoryTests {
 	}
 
 	private RequestMatcher noChecksumHeader() {
-		return (request) -> Assertions.assertThat(request.getHeaders().keySet()).doesNotContain("X-Checksum-Deploy");
+		return (request) -> Assertions.assertThat(request.getHeaders().headerNames())
+			.doesNotContain("X-Checksum-Deploy");
 	}
 
 	@Test

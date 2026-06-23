@@ -30,9 +30,9 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.boot.test.json.BasicJsonTester;
 import org.springframework.boot.test.json.JsonContent;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
@@ -67,7 +67,7 @@ class ArtifactoryDeployIntegrationTests {
 				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
 				"--artifactory.deploy.threads=2" });
 		RestTemplate rest = new RestTemplateBuilder().basicAuthentication("admin", "password")
-			.rootUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
+			.baseUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
 			.build();
 		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
 			.isEqualTo("jar-file-content");
@@ -100,7 +100,7 @@ class ArtifactoryDeployIntegrationTests {
 				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
 				"--artifactory.deploy.threads=2" });
 		RestTemplate rest = new RestTemplateBuilder().basicAuthentication("admin", "password")
-			.rootUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
+			.baseUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
 			.build();
 		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
 			.isEqualTo("jar-file-content");
@@ -134,7 +134,7 @@ class ArtifactoryDeployIntegrationTests {
 				"--artifactory.deploy.threads=2",
 				"--artifactory.deploy.artifact-properties=/**/example-docs-*.zip::zip.type=docs,zip.deployed=false" });
 		RestTemplate rest = new RestTemplateBuilder().basicAuthentication("admin", "password")
-			.rootUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
+			.baseUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
 			.build();
 		assertThat(rest.getForObject("/example-repo-local/com/example/example-docs/1.0.0/example-docs-1.0.0.zip",
 				String.class))
@@ -188,7 +188,7 @@ class ArtifactoryDeployIntegrationTests {
 				"--artifactory.deploy.threads=2", "--artifactory.signing.key=" + signingKey,
 				"--artifactory.signing.passphrase=password" });
 		RestTemplate rest = new RestTemplateBuilder().basicAuthentication("admin", "password")
-			.rootUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
+			.baseUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
 			.build();
 		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
 			.isEqualTo("jar-file-content");
@@ -230,7 +230,7 @@ class ArtifactoryDeployIntegrationTests {
 				"--artifactory.signing.passphrase=password", "--artifactory.signing.key-id=C3E2E826" });
 
 		RestTemplate rest = new RestTemplateBuilder().basicAuthentication("admin", "password")
-			.rootUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
+			.baseUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
 			.build();
 		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
 			.isEqualTo("jar-file-content");
