@@ -11,7 +11,7 @@ runs:
   using: composite
   steps:
   - name: Check out action
-    uses: actions/checkout@v4
+    uses: actions/checkout@v7
   - name: Create artifacts to deploy
     run: |
       mkdir -p deployment-repository/com/example/module-a/1.0.0-SNAPSHOT

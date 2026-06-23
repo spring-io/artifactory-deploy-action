@@ -13,7 +13,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Build
         id: build
         uses: ./.github/actions/build
@@ -29,7 +29,7 @@ jobs:
           - 8081:8081
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Integration test
         uses: ./.github/actions/integration-test
         with:
@@ -43,7 +43,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - name: Check Out Code
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@v7
       - name: Create GitHub Release
         uses: ./.github/actions/create-github-release
         with:
