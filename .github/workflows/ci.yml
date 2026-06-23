@@ -32,3 +32,27 @@ jobs:
         with:
           signing-key: ${{ secrets.INTEGRATION_TEST_SIGNING_KEY }}
           signing-passphrase: ${{ secrets.INTEGRATION_TEST_SIGNING_PASSPHRASE }}
+  deploy:
+    name: 'Deploy to repo.spring.io'
+    runs-on: 'ubuntu-latest'
+    needs:
+      - build
+      - integration-test
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          gradle-task: '-PdeploymentRepository=$(pwd)/maven-repo publishAllPublicationsToDeploymentRepository'
+      - name: Deploy to repo.spring.io
+        uses: spring-io/artifactory-deploy-action@926d7f7cc810569395346bf3a4d91b380b3e355b # v0.0.4
+        with:
+          uri: 'https://repo.spring.io'
+          username: ${{ secrets.ARTIFACTORY_USERNAME }}
+          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          build-name: ${{ format('artifactory-deploy-{0}', github.ref_name)}}
+          repository: 'libs-snapshot-local'
+          folder: './maven-repo/'
+          signing-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          signing-passphrase: ${{ secrets.GPG_PASSPHRASE }}

@@ -1,5 +1,9 @@
 name: Build
 description: 'Builds the project'
+inputs:
+  gradle-task:
+    description: 'Gradle task(s) to run'
+    default: 'build'
 outputs:
   version:
     description: 'Version that was built'
@@ -19,7 +23,7 @@ runs:
       with:
         cache-read-only: false
     - name: Build
-      run: ./gradlew build
+      run: ./gradlew ${{ inputs.gradle-task }}
       shell: bash
     - id: read-version
       name: Read Version From gradle.properties
