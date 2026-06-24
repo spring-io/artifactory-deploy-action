@@ -102,12 +102,12 @@ public class Deployer {
 	 * @param repository the target repository
 	 * @param buildNumber the build number
 	 * @param buildName the build name
-	 * @param buildUri uri of the build on the CI server
-	 * @param project the Artifactory project key
-	 * @param revision the VCS revision
+	 * @param buildUri uri of the build on the CI server, or {@code null}
+	 * @param project the Artifactory project key, or {@code null}
+	 * @param revision the VCS revision, or {@code null}
 	 * @param folder the folder containing artifacts to deploy
-	 * @param artifactProperties per-path artifact property rules
-	 * @param signing signing configuration, or {@code null} to skip signing
+	 * @param artifactProperties per-path artifact property rules, or {@code null}
+	 * @param signing signing configuration, or {@code null}
 	 */
 	public void deploy(String repository, int buildNumber, String buildName, URI buildUri, String project,
 			String revision, Path folder, List<ArtifactProperties> artifactProperties, Signing signing) {
