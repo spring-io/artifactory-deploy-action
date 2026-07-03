@@ -61,7 +61,7 @@ public interface Artifactory {
 	 * @param modules the modules produced by the build
 	 *
 	 */
-	record BuildRun(int number, Instant started, URI uri, Vcs vcs, List<BuildModule> modules) {
+	record BuildRun(String number, Instant started, URI uri, Vcs vcs, List<BuildModule> modules) {
 	}
 
 }

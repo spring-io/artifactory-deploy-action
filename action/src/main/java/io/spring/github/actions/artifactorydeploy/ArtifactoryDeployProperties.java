@@ -68,7 +68,7 @@ public record ArtifactoryDeployProperties(@DefaultValue ArtifactoryDeployPropert
 			this.artifactProperties = (artifactProperties != null) ? artifactProperties : Collections.emptyList();
 		}
 
-		public record Build(String name, int number, URI uri) {
+		public record Build(String name, String number, URI uri) {
 
 			public Build {
 				Assert.hasText(name, "artifactory.deploy.build.name is required");

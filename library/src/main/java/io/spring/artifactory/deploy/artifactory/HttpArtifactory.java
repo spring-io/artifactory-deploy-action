@@ -193,9 +193,8 @@ public class HttpArtifactory implements Artifactory {
 	@Override
 	public void addBuildRun(String project, String buildName, BuildRun buildRun) {
 		console.debug("Adding {} build {}", buildName, buildRun.number());
-		String buildNumber = Integer.toString(buildRun.number());
 		String buildUrl = (buildRun.uri() != null) ? buildRun.uri().toString() : null;
-		BuildInfo buildInfo = new BuildInfo(buildName, buildNumber, buildRun.started(), buildUrl, buildRun.vcs(),
+		BuildInfo buildInfo = new BuildInfo(buildName, buildRun.number(), buildRun.started(), buildUrl, buildRun.vcs(),
 				buildRun.modules());
 		this.restClient.put()
 			.uri((builder) -> buildRunUri(builder, project))

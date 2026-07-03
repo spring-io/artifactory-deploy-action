@@ -255,7 +255,7 @@ class HttpArtifactoryTests {
 			.singletonList(new BuildModule("com.example.module:my-module:1.0.0-SNAPSHOT", artifacts));
 		Instant started = ZonedDateTime.parse("2014-09-30T12:00:19.893Z", DateTimeFormatter.ISO_DATE_TIME).toInstant();
 		this.artifactory.addBuildRun(null, "my-build",
-				new BuildRun(5678, started, URI.create("https://ci.example.com"), vcs, modules));
+				new BuildRun("5678", started, URI.create("https://ci.example.com"), vcs, modules));
 		this.server.verify();
 	}
 
@@ -274,7 +274,7 @@ class HttpArtifactoryTests {
 			.singletonList(new BuildModule("com.example.module:my-module:1.0.0-SNAPSHOT", artifacts));
 		Instant started = ZonedDateTime.parse("2014-09-30T12:00:19.893Z", DateTimeFormatter.ISO_DATE_TIME).toInstant();
 		this.artifactory.addBuildRun("my-project", "my-build",
-				new BuildRun(5678, started, URI.create("https://ci.example.com"), vcs, modules));
+				new BuildRun("5678", started, URI.create("https://ci.example.com"), vcs, modules));
 		this.server.verify();
 	}
 

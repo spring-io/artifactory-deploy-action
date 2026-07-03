@@ -92,7 +92,7 @@ class DeployerTests {
 	void deployWhenFolderIsEmptyThrowsException() {
 		given(this.directoryScanner.scan(any(File.class))).willReturn(FileSet.of());
 		assertThatIllegalStateException()
-			.isThrownBy(() -> createDeployer().deploy(REPOSITORY, 1, BUILD_NAME, createBuildUri(1), PROJECT, REVISION,
+			.isThrownBy(() -> createDeployer().deploy(REPOSITORY, "1", BUILD_NAME, createBuildUri(1), PROJECT, REVISION,
 					this.tempDir, null, null))
 			.withMessage("No artifacts found in empty directory '%s'".formatted(this.tempDir));
 	}
@@ -102,7 +102,7 @@ class DeployerTests {
 		given(this.directoryScanner.scan(any(File.class))).willReturn(FileSet.of());
 		Files.createFile(this.tempDir.resolve("file"));
 		assertThatIllegalStateException()
-			.isThrownBy(() -> createDeployer().deploy(REPOSITORY, 1, BUILD_NAME, createBuildUri(1), PROJECT, REVISION,
+			.isThrownBy(() -> createDeployer().deploy(REPOSITORY, "1", BUILD_NAME, createBuildUri(1), PROJECT, REVISION,
 					this.tempDir, null, null))
 			.withMessage("No artifacts found to deploy");
 	}
@@ -113,11 +113,11 @@ class DeployerTests {
 		Files.createDirectories(artifact.getParent());
 		Files.createFile(artifact);
 		given(this.directoryScanner.scan(any(File.class))).willReturn(FileSet.of(artifact.toFile()));
-		createDeployer().deploy(REPOSITORY, 1234, BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
+		createDeployer().deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
 				null, null);
 		verify(this.artifactory).addBuildRun(eq(null), eq("my-build"), this.buildRunCaptor.capture());
 		BuildRun buildRun = this.buildRunCaptor.getValue();
-		assertThat(buildRun.number()).isEqualTo(1234);
+		assertThat(buildRun.number()).isEqualTo("1234");
 		assertThat(buildRun.modules()).hasSize(1);
 		assertThat(buildRun.modules()).first().satisfies((module) -> {
 			assertThat(module.id()).isEqualTo("com.example:foo:0.0.1");
@@ -134,11 +134,11 @@ class DeployerTests {
 		Files.createDirectories(artifact.getParent());
 		Files.createFile(artifact);
 		given(this.directoryScanner.scan(any(File.class))).willReturn(FileSet.of(artifact.toFile()));
-		createDeployer().deploy(REPOSITORY, 1234, BUILD_NAME, createBuildUri(1234), "my-project", REVISION,
+		createDeployer().deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), "my-project", REVISION,
 				this.tempDir, null, null);
 		verify(this.artifactory).addBuildRun(eq("my-project"), eq("my-build"), this.buildRunCaptor.capture());
 		BuildRun buildRun = this.buildRunCaptor.getValue();
-		assertThat(buildRun.number()).isEqualTo(1234);
+		assertThat(buildRun.number()).isEqualTo("1234");
 		assertThat(buildRun.modules()).hasSize(1).first().satisfies((module) -> {
 			assertThat(module.id()).isEqualTo("com.example:foo:0.0.1");
 			assertThat(module.artifacts()).hasSize(1).first().satisfies((moduleArtifact) -> {
@@ -154,7 +154,7 @@ class DeployerTests {
 		Files.createDirectories(artifact.getParent());
 		Files.createFile(artifact);
 		given(this.directoryScanner.scan(any(File.class))).willReturn(FileSet.of(artifact.toFile()));
-		createDeployer().deploy(REPOSITORY, 1234, BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
+		createDeployer().deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
 				null, null);
 		verify(this.artifactory).deploy(eq("libs-example-local"), this.artifactCaptor.capture());
 		DeployableArtifact deployed = this.artifactCaptor.getValue();
@@ -190,7 +190,7 @@ class DeployerTests {
 			return null;
 		}).given(this.artifactory).deploy(eq("libs-example-local"), any(DeployableArtifact.class));
 		int threads = 2;
-		createDeployer(2).deploy(REPOSITORY, 1234, BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
+		createDeployer(2).deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
 				null, null);
 		verify(this.artifactory, times(12)).deploy(eq("libs-example-local"), this.artifactCaptor.capture());
 		assertThat(usedThreads).hasSizeLessThanOrEqualTo(threads);
@@ -216,7 +216,7 @@ class DeployerTests {
 		given(this.directoryScanner.scan(any(File.class))).willReturn(FileSet.of(artifact.toFile()));
 		ArtifactProperties artifactProperties = new ArtifactProperties(List.of("/**/foo-0.0.1.jar"),
 				Collections.emptyList(), Map.of("foo", "bar"));
-		createDeployer(2).deploy(REPOSITORY, 1234, BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
+		createDeployer(2).deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
 				List.of(artifactProperties), null);
 		verify(this.artifactory).deploy(eq("libs-example-local"), this.artifactCaptor.capture());
 		DeployableArtifact deployed = this.artifactCaptor.getValue();
@@ -239,7 +239,7 @@ class DeployerTests {
 		files.add(new File(fooModule.toFile(), "foo-0.0.1.sha512"));
 		createEmptyFiles(files);
 		given(this.directoryScanner.scan(this.tempDir.toFile())).willReturn(FileSet.of(files));
-		createDeployer().deploy(REPOSITORY, 1234, BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
+		createDeployer().deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
 				null, null);
 		verify(this.artifactory).addBuildRun(eq(null), eq("my-build"), this.buildRunCaptor.capture());
 		List<BuildModule> buildModules = this.buildRunCaptor.getValue().modules();
@@ -255,7 +255,7 @@ class DeployerTests {
 		files.add(new File(fooModule.toFile(), "foo-0.0.1.jar"));
 		createEmptyFiles(files);
 		given(this.directoryScanner.scan(this.tempDir.toFile())).willReturn(FileSet.of(files));
-		createDeployer().deploy(REPOSITORY, 1234, BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
+		createDeployer().deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
 				null, null);
 		verify(this.artifactory).addBuildRun(eq(null), eq("my-build"), this.buildRunCaptor.capture());
 		List<BuildModule> buildModules = this.buildRunCaptor.getValue().modules();
@@ -271,7 +271,7 @@ class DeployerTests {
 		files.add(new File(fooModule.toFile(), "foo-0.0.1.jar"));
 		createEmptyFiles(files);
 		given(this.directoryScanner.scan(this.tempDir.toFile())).willReturn(FileSet.of(files));
-		createDeployer().deploy(REPOSITORY, 1234, BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
+		createDeployer().deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
 				null, null);
 		verify(this.artifactory).addBuildRun(eq(null), eq("my-build"), this.buildRunCaptor.capture());
 		List<BuildModule> buildModules = this.buildRunCaptor.getValue().modules();
@@ -286,7 +286,7 @@ class DeployerTests {
 		files.add(new File(fooModule.toFile(), "foo-0.0.1-20240305.110926-1.jar"));
 		createEmptyFiles(files);
 		given(this.directoryScanner.scan(this.tempDir.toFile())).willReturn(FileSet.of(files));
-		createDeployer().deploy(REPOSITORY, 1234, BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
+		createDeployer().deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
 				null, null);
 		verify(this.artifactory).deploy(eq("libs-example-local"), this.artifactCaptor.capture());
 		DeployableArtifact artifact = this.artifactCaptor.getValue();
@@ -310,7 +310,7 @@ class DeployerTests {
 		files.add(new File(fooModule.toFile(), "foo-0.0.1-20240305.110926-2.jar"));
 		createEmptyFiles(files);
 		given(this.directoryScanner.scan(this.tempDir.toFile())).willReturn(FileSet.of(files));
-		createDeployer().deploy(REPOSITORY, 1234, BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
+		createDeployer().deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, this.tempDir,
 				null, null);
 		verify(this.artifactory).deploy(eq("libs-example-local"), this.artifactCaptor.capture());
 		DeployableArtifact artifact = this.artifactCaptor.getValue();

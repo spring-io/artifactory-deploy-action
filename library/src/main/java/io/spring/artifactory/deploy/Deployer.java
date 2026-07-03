@@ -109,7 +109,7 @@ public class Deployer {
 	 * @param artifactProperties per-path artifact property rules, or {@code null}
 	 * @param signing signing configuration, or {@code null}
 	 */
-	public void deploy(String repository, int buildNumber, String buildName, URI buildUri, String project,
+	public void deploy(String repository, String buildNumber, String buildName, URI buildUri, String project,
 			String revision, Path folder, List<ArtifactProperties> artifactProperties, Signing signing) {
 		Instant started = Instant.now();
 		Map<String, String> buildProperties = getBuildProperties(buildNumber, buildName, started);
@@ -179,8 +179,8 @@ public class Deployer {
 		return new PathFilter(artifactProperties.include(), artifactProperties.exclude());
 	}
 
-	private Map<String, String> getBuildProperties(int buildNumber, String buildName, Instant started) {
-		return Map.of("build.name", buildName, "build.number", Integer.toString(buildNumber), "build.timestamp",
+	private Map<String, String> getBuildProperties(String buildNumber, String buildName, Instant started) {
+		return Map.of("build.name", buildName, "build.number", buildNumber, "build.timestamp",
 				Long.toString(started.toEpochMilli()));
 	}
 
@@ -264,14 +264,14 @@ public class Deployer {
 		};
 	}
 
-	private void addBuildRun(int buildNumber, String buildName, URI buildUri, String project, String revision,
+	private void addBuildRun(String buildNumber, String buildName, URI buildUri, String project, String revision,
 			Instant started, MultiValueMap<Category, DeployableArtifact> batchedArtifacts) {
 		console.debug("Adding build run {}", buildNumber);
 		this.artifactory.addBuildRun(project, buildName,
 				createBuildRun(buildNumber, buildUri, revision, started, batchedArtifacts));
 	}
 
-	private BuildRun createBuildRun(int buildNumber, URI buildUri, String revision, Instant started,
+	private BuildRun createBuildRun(String buildNumber, URI buildUri, String revision, Instant started,
 			MultiValueMap<Category, DeployableArtifact> batchedArtifacts) {
 		Vcs vcs = createVcs(revision);
 		List<BuildModule> modules = asBuildModules(batchedArtifacts);
