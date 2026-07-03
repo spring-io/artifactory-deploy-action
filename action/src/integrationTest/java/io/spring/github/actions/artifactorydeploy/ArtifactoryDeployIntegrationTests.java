@@ -119,7 +119,7 @@ class ArtifactoryDeployIntegrationTests {
 	}
 
 	@Test
-	void deployWithArtifactProeprties(@TempDir File temp) throws IOException {
+	void deployWithArtifactProperties(@TempDir File temp) throws IOException {
 		File example = new File(temp, "com/example/example-docs/1.0.0");
 		example.mkdirs();
 		Files.writeString(new File(example, "example-docs-1.0.0.zip").toPath(), "jar-file-content");

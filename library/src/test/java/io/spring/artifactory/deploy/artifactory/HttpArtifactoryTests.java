@@ -46,8 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.skyscreamer.jsonassert.JSONAssert;
 
-import org.springframework.boot.restclient.RestTemplateBuilder;
-import org.springframework.boot.restclient.test.MockServerRestTemplateCustomizer;
+import org.springframework.boot.restclient.test.MockServerRestClientCustomizer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
@@ -58,6 +57,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.client.RequestMatcher;
 import org.springframework.test.web.client.ResponseCreator;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.web.client.RestClient;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
@@ -77,7 +77,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  */
 class HttpArtifactoryTests {
 
-	private final MockServerRestTemplateCustomizer customizer = new MockServerRestTemplateCustomizer();
+	private final MockServerRestClientCustomizer customizer = new MockServerRestClientCustomizer();
 
 	private MockRestServiceServer server;
 
@@ -95,7 +95,8 @@ class HttpArtifactoryTests {
 
 	@BeforeEach
 	void setup() {
-		RestTemplateBuilder builder = new RestTemplateBuilder().additionalCustomizers(this.customizer);
+		RestClient.Builder builder = RestClient.builder();
+		this.customizer.customize(builder);
 		this.artifactory = new HttpArtifactory(builder, URI.create("https://repo.example.com"), "alice", "secret",
 				Duration.ofMillis(10));
 		this.server = this.customizer.getServer();

@@ -20,9 +20,9 @@ import io.spring.artifactory.deploy.artifactory.Artifactory;
 import io.spring.artifactory.deploy.artifactory.HttpArtifactory;
 
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
-import org.springframework.boot.restclient.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestClient;
 
 /**
  * {@link Configuration} for Artifactory-related classes.
@@ -33,8 +33,8 @@ import org.springframework.context.annotation.Configuration;
 class ArtifactoryConfiguration {
 
 	@Bean
-	Artifactory artifactory(ArtifactoryDeployProperties properties, RestTemplateBuilder restTemplateBuilder) {
-		return new HttpArtifactory(restTemplateBuilder, properties.server().uri(), properties.server().username(),
+	Artifactory artifactory(ArtifactoryDeployProperties properties, RestClient.Builder restClientBuilder) {
+		return new HttpArtifactory(restClientBuilder, properties.server().uri(), properties.server().username(),
 				properties.server().password());
 	}
 

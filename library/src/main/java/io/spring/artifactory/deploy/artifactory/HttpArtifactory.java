@@ -26,22 +26,17 @@ import io.spring.artifactory.deploy.artifactory.payload.Checksums;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.system.ConsoleLogger;
 
-import org.springframework.boot.restclient.RestTemplateBuilder;
-import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.RequestEntity.BodyBuilder;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.UriBuilder;
 
 /**
  * Default {@link Artifactory} implementation communicating over HTTP.
@@ -56,41 +51,35 @@ public class HttpArtifactory implements Artifactory {
 
 	private static final ConsoleLogger console = new ConsoleLogger();
 
-	private final RestTemplate restTemplate;
-
-	private final String uri;
+	private final RestClient restClient;
 
 	private final Duration retryDelay;
 
 	/**
 	 * Creates a new {@link HttpArtifactory} with a default delay.
-	 * @param restTemplateBuilder builder for creating the {@link RestTemplate}
+	 * @param restClientBuilder builder for creating the {@link RestClient}
 	 * @param uri the Artifactory server URI
 	 * @param username the username for authentication
 	 * @param password the password for authentication
 	 */
-	public HttpArtifactory(RestTemplateBuilder restTemplateBuilder, URI uri, String username, String password) {
-		this(restTemplateBuilder, uri, username, password, Duration.ofSeconds(5));
+	public HttpArtifactory(RestClient.Builder restClientBuilder, URI uri, String username, String password) {
+		this(restClientBuilder, uri, username, password, Duration.ofSeconds(5));
 	}
 
 	/**
 	 * Creates a new {@link HttpArtifactory}.
-	 * @param restTemplateBuilder builder for creating the {@link RestTemplate}
+	 * @param restClientBuilder builder for creating the {@link RestClient}
 	 * @param uri the Artifactory server URI
 	 * @param username the username for authentication
 	 * @param password the password for authentication
 	 * @param retryDelay delay between retries on transient failures
 	 */
-	public HttpArtifactory(RestTemplateBuilder restTemplateBuilder, URI uri, String username, String password,
+	public HttpArtifactory(RestClient.Builder restClientBuilder, URI uri, String username, String password,
 			Duration retryDelay) {
-		RestTemplateBuilder builder = restTemplateBuilder.connectTimeout(Duration.ofMinutes(1))
-			.readTimeout(Duration.ofMinutes(5));
 		if (StringUtils.hasText(username)) {
-			builder = builder.basicAuthentication(username, password);
+			restClientBuilder = restClientBuilder.defaultHeaders((headers) -> headers.setBasicAuth(username, password));
 		}
-		this.restTemplate = builder.build();
-		String uriString = uri.toString();
-		this.uri = uriString.endsWith("/") ? uriString : uriString + "/";
+		this.restClient = restClientBuilder.baseUrl(uri).build();
 		this.retryDelay = retryDelay;
 	}
 
@@ -120,8 +109,13 @@ public class HttpArtifactory implements Artifactory {
 	}
 
 	private void deployUsingChecksum(String repository, DeployableArtifact artifact) {
-		RequestEntity<Void> request = deployRequest(repository, artifact).header("X-Checksum-Deploy", "true").build();
-		this.restTemplate.exchange(request, Void.class);
+		this.restClient.put()
+			.uri((builder) -> deployUri(builder, repository, artifact))
+			.contentType(MediaType.APPLICATION_OCTET_STREAM)
+			.headers((headers) -> headers(headers, artifact))
+			.header("X-Checksum-Deploy", "true")
+			.retrieve()
+			.toBodilessEntity();
 	}
 
 	private void deployUsingContent(String repository, DeployableArtifact artifact) {
@@ -129,9 +123,14 @@ public class HttpArtifactory implements Artifactory {
 		while (true) {
 			try {
 				attempt++;
-				RequestEntity<Resource> request = deployRequest(repository, artifact).contentLength(artifact.getSize())
-					.body(artifact.getContent());
-				this.restTemplate.exchange(request, Void.class);
+				this.restClient.put()
+					.uri((builder) -> deployUri(builder, repository, artifact))
+					.contentType(MediaType.APPLICATION_OCTET_STREAM)
+					.headers((headers) -> headers(headers, artifact))
+					.contentLength(artifact.getSize())
+					.body(artifact.getContent())
+					.retrieve()
+					.toBodilessEntity();
 				return;
 			}
 			catch (RestClientResponseException | ResourceAccessException ex) {
@@ -168,18 +167,17 @@ public class HttpArtifactory implements Artifactory {
 		}
 	}
 
-	private BodyBuilder deployRequest(String repository, DeployableArtifact artifact) {
-		UriComponents uriComponents = UriComponentsBuilder.fromUriString(this.uri)
-			.path(repository)
+	private URI deployUri(UriBuilder builder, String repository, DeployableArtifact artifact) {
+		return builder.pathSegment(repository)
 			.path(artifact.getPath())
 			.path(buildMatrixParams(artifact.getProperties()))
 			.build();
-		URI uri = uriComponents.encode().toUri();
+	}
+
+	private void headers(HttpHeaders headers, DeployableArtifact artifact) {
 		Checksums checksums = artifact.getChecksums();
-		return RequestEntity.put(uri)
-			.contentType(MediaType.APPLICATION_OCTET_STREAM)
-			.header("X-Checksum-Sha1", checksums.getSha1())
-			.header("X-Checksum-Md5", checksums.getMd5());
+		headers.add("X-Checksum-Sha1", checksums.getSha1());
+		headers.add("X-Checksum-Md5", checksums.getMd5());
 	}
 
 	private String buildMatrixParams(Map<String, String> matrixParams) {
@@ -195,20 +193,27 @@ public class HttpArtifactory implements Artifactory {
 	@Override
 	public void addBuildRun(String project, String buildName, BuildRun buildRun) {
 		console.debug("Adding {} build {}", buildName, buildRun.number());
-		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(this.uri).path("api/build");
+		String buildNumber = Integer.toString(buildRun.number());
+		String buildUrl = (buildRun.uri() != null) ? buildRun.uri().toString() : null;
+		BuildInfo buildInfo = new BuildInfo(buildName, buildNumber, buildRun.started(), buildUrl, buildRun.vcs(),
+				buildRun.modules());
+		this.restClient.put()
+			.uri((builder) -> buildRunUri(builder, project))
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(buildInfo)
+			.retrieve()
+			.toBodilessEntity();
+	}
+
+	private URI buildRunUri(UriBuilder builder, String project) {
+		builder = builder.pathSegment("api", "build");
 		if (StringUtils.hasText(project)) {
 			console.debug("Publishing to project {}", project);
 			builder = builder.queryParam("project", project);
 		}
-		UriComponents uriComponents = builder.build();
-		URI uri = uriComponents.encode().toUri();
+		URI uri = builder.build();
 		console.debug("Publishing build info to {}", uri);
-		RequestEntity<BuildInfo> request = RequestEntity.put(uri)
-			.contentType(MediaType.APPLICATION_JSON)
-			.body(new BuildInfo(buildName, Integer.toString(buildRun.number()), buildRun.started(),
-					(buildRun.uri() != null) ? buildRun.uri().toString() : null, buildRun.vcs(), buildRun.modules()));
-		ResponseEntity<Void> exchange = this.restTemplate.exchange(request, Void.class);
-		exchange.getBody();
+		return uri;
 	}
 
 }
