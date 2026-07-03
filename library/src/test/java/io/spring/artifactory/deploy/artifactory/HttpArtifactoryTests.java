@@ -38,6 +38,7 @@ import io.spring.artifactory.deploy.artifactory.payload.BuildModule;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableFileArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.Vcs;
+import io.spring.artifactory.deploy.system.Logger;
 import org.assertj.core.api.Assertions;
 import org.json.JSONException;
 import org.junit.jupiter.api.AfterEach;
@@ -97,8 +98,8 @@ class HttpArtifactoryTests {
 	void setup() {
 		RestClient.Builder builder = RestClient.builder();
 		this.customizer.customize(builder);
-		this.artifactory = new HttpArtifactory(builder, URI.create("https://repo.example.com"), "alice", "secret",
-				Duration.ofMillis(10));
+		this.artifactory = new HttpArtifactory(Logger.console(true), builder, URI.create("https://repo.example.com"),
+				"alice", "secret", Duration.ofMillis(10));
 		this.server = this.customizer.getServer();
 	}
 

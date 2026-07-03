@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,45 +16,35 @@
 
 package io.spring.artifactory.deploy.system;
 
-import org.slf4j.helpers.MessageFormatter;
-
 /**
- * Simple console logger used to output progress messages.
+ * Logger interface used by the library.
  *
  * @author Andy Wilkinson
+ * @author Phillip Webb
  */
-class ConsoleLogger implements Logger {
-
-	private final boolean debug;
-
-	/**
-	 * Creates a new {@link ConsoleLogger}.
-	 * @param debug if debug logs are output
-	 */
-	ConsoleLogger(boolean debug) {
-		this.debug = debug;
-	}
+public interface Logger {
 
 	/**
 	 * Logs a message to standard output.
 	 * @param message the message, with SLF4J-style {@code {}} placeholders
 	 * @param args arguments to substitute into the message
 	 */
-	@Override
-	public void log(String message, Object... args) {
-		System.out.println(MessageFormatter.arrayFormat(message, args).getMessage());
-	}
+	void log(String message, Object... args);
 
 	/**
 	 * Logs a debug message to standard output when debug mode is enabled.
 	 * @param message the message, with SLF4J-style {@code {}} placeholders
 	 * @param args arguments to substitute into the message
 	 */
-	@Override
-	public void debug(String message, Object... args) {
-		if (this.debug) {
-			log("##[debug]" + message, args);
-		}
+	void debug(String message, Object... args);
+
+	/**
+	 * Return a logger that outputs messages directly to the console.
+	 * @param debug if debugging is enabled
+	 * @return the logger
+	 */
+	static Logger console(boolean debug) {
+		return new ConsoleLogger(debug);
 	}
 
 }

@@ -24,7 +24,7 @@ import java.util.Map;
 import io.spring.artifactory.deploy.artifactory.payload.BuildInfo;
 import io.spring.artifactory.deploy.artifactory.payload.Checksums;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
-import io.spring.artifactory.deploy.system.ConsoleLogger;
+import io.spring.artifactory.deploy.system.Logger;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -49,7 +49,7 @@ public class HttpArtifactory implements Artifactory {
 
 	private static final long CHECKSUM_THRESHOLD = 10 * 1024;
 
-	private static final ConsoleLogger console = new ConsoleLogger();
+	private final Logger logger;
 
 	private final RestClient restClient;
 
@@ -57,25 +57,29 @@ public class HttpArtifactory implements Artifactory {
 
 	/**
 	 * Creates a new {@link HttpArtifactory} with a default delay.
+	 * @param logger the logger
 	 * @param restClientBuilder builder for creating the {@link RestClient}
 	 * @param uri the Artifactory server URI
 	 * @param username the username for authentication
 	 * @param password the password for authentication
 	 */
-	public HttpArtifactory(RestClient.Builder restClientBuilder, URI uri, String username, String password) {
-		this(restClientBuilder, uri, username, password, Duration.ofSeconds(5));
+	public HttpArtifactory(Logger logger, RestClient.Builder restClientBuilder, URI uri, String username,
+			String password) {
+		this(logger, restClientBuilder, uri, username, password, Duration.ofSeconds(5));
 	}
 
 	/**
 	 * Creates a new {@link HttpArtifactory}.
+	 * @param logger the logger
 	 * @param restClientBuilder builder for creating the {@link RestClient}
 	 * @param uri the Artifactory server URI
 	 * @param username the username for authentication
 	 * @param password the password for authentication
 	 * @param retryDelay delay between retries on transient failures
 	 */
-	public HttpArtifactory(RestClient.Builder restClientBuilder, URI uri, String username, String password,
-			Duration retryDelay) {
+	public HttpArtifactory(Logger logger, RestClient.Builder restClientBuilder, URI uri, String username,
+			String password, Duration retryDelay) {
+		this.logger = logger;
 		if (StringUtils.hasText(username)) {
 			restClientBuilder = restClientBuilder.defaultHeaders((headers) -> headers.setBasicAuth(username, password));
 		}
@@ -141,7 +145,7 @@ public class HttpArtifactory implements Artifactory {
 				if (!flaky || attempt >= 3) {
 					throw ex;
 				}
-				console.log("Deploy failed with {} response. Retrying in {}ms.", statusCode,
+				this.logger.log("Deploy failed with {} response. Retrying in {}ms.", statusCode,
 						this.retryDelay.toMillis());
 				trySleep(this.retryDelay);
 			}
@@ -192,7 +196,7 @@ public class HttpArtifactory implements Artifactory {
 
 	@Override
 	public void addBuildRun(String project, String buildName, BuildRun buildRun) {
-		console.debug("Adding {} build {}", buildName, buildRun.number());
+		this.logger.debug("Adding {} build {}", buildName, buildRun.number());
 		String buildUrl = (buildRun.uri() != null) ? buildRun.uri().toString() : null;
 		BuildInfo buildInfo = new BuildInfo(buildName, buildRun.number(), buildRun.started(), buildUrl, buildRun.vcs(),
 				buildRun.modules());
@@ -207,11 +211,11 @@ public class HttpArtifactory implements Artifactory {
 	private URI buildRunUri(UriBuilder builder, String project) {
 		builder = builder.pathSegment("api", "build");
 		if (StringUtils.hasText(project)) {
-			console.debug("Publishing to project {}", project);
+			this.logger.debug("Publishing to project {}", project);
 			builder = builder.queryParam("project", project);
 		}
 		URI uri = builder.build();
-		console.debug("Publishing build info to {}", uri);
+		this.logger.debug("Publishing build info to {}", uri);
 		return uri;
 	}
 

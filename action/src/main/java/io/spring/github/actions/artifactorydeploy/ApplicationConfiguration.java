@@ -19,6 +19,7 @@ package io.spring.github.actions.artifactorydeploy;
 import io.spring.artifactory.deploy.Deployer;
 import io.spring.artifactory.deploy.artifactory.Artifactory;
 import io.spring.artifactory.deploy.io.DirectoryScanner;
+import io.spring.artifactory.deploy.system.Logger;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -40,8 +41,13 @@ class ApplicationConfiguration {
 	}
 
 	@Bean
-	Deployer deployer(Artifactory artifactory, DirectoryScanner directoryScanner) {
-		return new Deployer(artifactory, directoryScanner, this.properties.server().uri(),
+	Logger logger() {
+		return Logger.console(Boolean.parseBoolean(System.getenv("ACTIONS_STEP_DEBUG")));
+	}
+
+	@Bean
+	Deployer deployer(Logger logger, Artifactory artifactory, DirectoryScanner directoryScanner) {
+		return new Deployer(logger, artifactory, directoryScanner, this.properties.server().uri(),
 				this.properties.deploy().threads());
 	}
 

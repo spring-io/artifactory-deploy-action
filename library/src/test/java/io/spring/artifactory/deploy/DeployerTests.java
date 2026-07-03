@@ -35,6 +35,7 @@ import io.spring.artifactory.deploy.artifactory.payload.BuildModule;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.io.DirectoryScanner;
 import io.spring.artifactory.deploy.io.FileSet;
+import io.spring.artifactory.deploy.system.Logger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
@@ -342,7 +343,8 @@ class DeployerTests {
 	}
 
 	private Deployer createDeployer(int threads) {
-		return new Deployer(this.artifactory, this.directoryScanner, URI.create("https://repo.example.com"), threads);
+		return new Deployer(Logger.console(true), this.artifactory, this.directoryScanner,
+				URI.create("https://repo.example.com"), threads);
 	}
 
 	private URI createBuildUri(int buildNumber) {

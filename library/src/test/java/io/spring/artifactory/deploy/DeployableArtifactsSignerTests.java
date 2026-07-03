@@ -26,6 +26,7 @@ import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableFileArtifact;
 import io.spring.artifactory.deploy.io.FileSet.Category;
 import io.spring.artifactory.deploy.openpgp.ArmoredAsciiSigner;
+import io.spring.artifactory.deploy.system.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -57,7 +58,7 @@ class DeployableArtifactsSignerTests {
 		String signingKey = new String(ArmoredAsciiSigner.class.getResourceAsStream("test-private.txt").readAllBytes(),
 				StandardCharsets.UTF_8);
 		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(signingKey, "password", null);
-		this.signer = new DeployableArtifactsSigner(signer, this.properties);
+		this.signer = new DeployableArtifactsSigner(Logger.console(true), signer, this.properties);
 	}
 
 	@Test

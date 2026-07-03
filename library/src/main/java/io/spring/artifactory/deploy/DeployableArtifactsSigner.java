@@ -27,7 +27,7 @@ import io.spring.artifactory.deploy.artifactory.payload.Checksums;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.io.FileSet.Category;
 import io.spring.artifactory.deploy.openpgp.ArmoredAsciiSigner;
-import io.spring.artifactory.deploy.system.ConsoleLogger;
+import io.spring.artifactory.deploy.system.Logger;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -46,8 +46,6 @@ public class DeployableArtifactsSigner {
 
 	private static final String FILE_EXTENSION = ".asc";
 
-	private static final ConsoleLogger console = new ConsoleLogger();
-
 	private static final File temp;
 
 	private final Map<String, String> buildProperties;
@@ -61,14 +59,18 @@ public class DeployableArtifactsSigner {
 		}
 	}
 
+	private final Logger logger;
+
 	private final ArmoredAsciiSigner signer;
 
 	/**
 	 * Creates a new {@link DeployableArtifactsSigner}.
+	 * @param logger the logger to use
 	 * @param signer the signer to use for signing artifacts
 	 * @param buildProperties build properties to attach to signature artifacts
 	 */
-	public DeployableArtifactsSigner(ArmoredAsciiSigner signer, Map<String, String> buildProperties) {
+	public DeployableArtifactsSigner(Logger logger, ArmoredAsciiSigner signer, Map<String, String> buildProperties) {
+		this.logger = logger;
 		this.signer = signer;
 		this.buildProperties = buildProperties;
 	}
@@ -114,7 +116,7 @@ public class DeployableArtifactsSigner {
 				this.signatureResource = new FileSystemResource(signatureFile);
 				signatureFile.getParentFile().mkdirs();
 				signatureFile.deleteOnExit();
-				console.debug("Signing {}", artifact.getPath());
+				DeployableArtifactsSigner.this.logger.debug("Signing {}", artifact.getPath());
 				DeployableArtifactsSigner.this.signer.sign(artifact.getContent().getInputStream(),
 						this.signatureResource.getOutputStream());
 				this.size = this.signatureResource.contentLength();

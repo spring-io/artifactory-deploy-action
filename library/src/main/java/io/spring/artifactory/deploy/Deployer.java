@@ -50,7 +50,7 @@ import io.spring.artifactory.deploy.maven.MavenBuildModulesGenerator;
 import io.spring.artifactory.deploy.maven.MavenCoordinates;
 import io.spring.artifactory.deploy.maven.MavenVersionType;
 import io.spring.artifactory.deploy.openpgp.ArmoredAsciiSigner;
-import io.spring.artifactory.deploy.system.ConsoleLogger;
+import io.spring.artifactory.deploy.system.Logger;
 
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
@@ -73,7 +73,7 @@ public class Deployer {
 
 	private static final Set<String> CHECKSUM_FILE_EXTENSIONS = Set.of(".md5", ".sha1", ".sha256", ".sha512");
 
-	private static final ConsoleLogger console = new ConsoleLogger();
+	private final Logger logger;
 
 	private final Artifactory artifactory;
 
@@ -85,12 +85,15 @@ public class Deployer {
 
 	/**
 	 * Creates a new {@link Deployer}.
+	 * @param logger the logger
 	 * @param artifactory the Artifactory instance to deploy to
 	 * @param directoryScanner the scanner used to find files to deploy
 	 * @param server uri of the Artifactory server
 	 * @param threads number of threads to use for parallel deployment
 	 */
-	public Deployer(Artifactory artifactory, DirectoryScanner directoryScanner, URI server, int threads) {
+	public Deployer(Logger logger, Artifactory artifactory, DirectoryScanner directoryScanner, URI server,
+			int threads) {
+		this.logger = logger;
 		this.artifactory = artifactory;
 		this.directoryScanner = directoryScanner;
 		this.server = server;
@@ -118,11 +121,11 @@ public class Deployer {
 		batchedArtifacts = signArtifactsIfNecessary(batchedArtifacts, buildProperties, signing);
 		int size = batchedArtifacts.values().stream().mapToInt(List::size).sum();
 		Assert.state(size > 0, "No artifacts found to deploy");
-		console.log("Deploying {} artifacts to {} in {} as build {} of {} using {} thread(s)", size, repository,
+		this.logger.log("Deploying {} artifacts to {} in {} as build {} of {} using {} thread(s)", size, repository,
 				this.server, buildNumber, buildName, this.threads);
 		deployArtifacts(batchedArtifacts, repository);
 		addBuildRun(buildNumber, buildName, buildUri, project, revision, started, batchedArtifacts);
-		console.debug("Done");
+		this.logger.debug("Done");
 	}
 
 	private MultiValueMap<Category, DeployableArtifact> getBatchedArtifacts(Map<String, String> buildProperties,
@@ -130,14 +133,14 @@ public class Deployer {
 		File root = folder.toFile();
 		Assert.state(!ObjectUtils.isEmpty(root.listFiles()),
 				() -> "No artifacts found in empty directory '%s'".formatted(root.getAbsolutePath()));
-		console.debug("Getting deployable artifacts from {}", root);
+		this.logger.debug("Getting deployable artifacts from {}", root);
 		FileSet fileSet = this.directoryScanner.scan(root).filter(getChecksumFilter()).filter(getMetadataFilter());
 		MultiValueMap<Category, DeployableArtifact> batchedArtifacts = new LinkedMultiValueMap<>();
 		Set<String> paths = new HashSet<>();
 		fileSet.batchedByCategory().forEach((category, files) -> {
 			files.forEach((file) -> {
 				String path = DeployableFileArtifact.calculatePath(root, file);
-				console.debug("Including file {} with path {}", file, path);
+				this.logger.debug("Including file {} with path {}", file, path);
 				Map<String, String> properties = new LinkedHashMap<>(buildProperties);
 				properties.putAll(getArtifactProperties(path, artifactProperties));
 				path = stripSnapshotTimestamp(path);
@@ -155,7 +158,7 @@ public class Deployer {
 			return path;
 		}
 		String stripped = path.replace(coordinates.getSnapshotVersion(), coordinates.getVersion());
-		console.debug("Stripped timestamp version {} to {}", path, stripped);
+		this.logger.debug("Stripped timestamp version {} to {}", path, stripped);
 		return stripped;
 	}
 
@@ -166,7 +169,7 @@ public class Deployer {
 		Map<String, String> properties = new LinkedHashMap<>();
 		for (ArtifactProperties artifactProperty : artifactProperties) {
 			if (getFilter(artifactProperty).isMatch(path)) {
-				console.debug("Artifact properties matched, adding properties {}", artifactProperty.properties());
+				this.logger.debug("Artifact properties matched, adding properties {}", artifactProperty.properties());
 				properties.putAll(artifactProperty.properties());
 			}
 		}
@@ -174,8 +177,8 @@ public class Deployer {
 	}
 
 	private PathFilter getFilter(ArtifactProperties artifactProperties) {
-		console.debug("Creating artifact properties filter including {} and excluding {}", artifactProperties.include(),
-				artifactProperties.exclude());
+		this.logger.debug("Creating artifact properties filter including {} and excluding {}",
+				artifactProperties.include(), artifactProperties.exclude());
 		return new PathFilter(artifactProperties.include(), artifactProperties.exclude());
 	}
 
@@ -197,9 +200,9 @@ public class Deployer {
 			MultiValueMap<Category, DeployableArtifact> batchedArtifacts, String signingKey, String signingPassphrase,
 			String signingKeyId, Map<String, String> buildProperties) {
 		try {
-			console.log("Signing artifacts");
+			this.logger.log("Signing artifacts");
 			ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(signingKey, signingPassphrase, signingKeyId);
-			return new DeployableArtifactsSigner(signer, buildProperties).addSignatures(batchedArtifacts);
+			return new DeployableArtifactsSigner(this.logger, signer, buildProperties).addSignatures(batchedArtifacts);
 		}
 		catch (IOException ex) {
 			throw new IllegalStateException("Unable to sign artifacts", ex);
@@ -221,7 +224,7 @@ public class Deployer {
 
 	private void deploy(Category category, List<DeployableArtifact> artifacts,
 			Function<DeployableArtifact, CompletableFuture<?>> deployer) {
-		console.debug("Deploying {} artifacts", category);
+		this.logger.debug("Deploying {} artifacts", category);
 		deploy(artifacts.stream().map(deployer).toArray(CompletableFuture[]::new));
 	}
 
@@ -243,7 +246,7 @@ public class Deployer {
 	}
 
 	private void deployArtifact(DeployableArtifact deployableArtifact, String repository) {
-		console.log("Deploying {} {} ({}/{})", deployableArtifact.getPath(), deployableArtifact.getProperties(),
+		this.logger.log("Deploying {} {} ({}/{})", deployableArtifact.getPath(), deployableArtifact.getProperties(),
 				deployableArtifact.getChecksums().getSha1(), deployableArtifact.getChecksums().getMd5());
 		this.artifactory.deploy(repository, deployableArtifact);
 	}
@@ -266,7 +269,7 @@ public class Deployer {
 
 	private void addBuildRun(String buildNumber, String buildName, URI buildUri, String project, String revision,
 			Instant started, MultiValueMap<Category, DeployableArtifact> batchedArtifacts) {
-		console.debug("Adding build run {}", buildNumber);
+		this.logger.debug("Adding build run {}", buildNumber);
 		this.artifactory.addBuildRun(project, buildName,
 				createBuildRun(buildNumber, buildUri, revision, started, batchedArtifacts));
 	}

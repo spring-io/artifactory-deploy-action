@@ -18,6 +18,7 @@ package io.spring.github.actions.artifactorydeploy;
 
 import io.spring.artifactory.deploy.artifactory.Artifactory;
 import io.spring.artifactory.deploy.artifactory.HttpArtifactory;
+import io.spring.artifactory.deploy.system.Logger;
 
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 import org.springframework.context.annotation.Bean;
@@ -33,8 +34,9 @@ import org.springframework.web.client.RestClient;
 class ArtifactoryConfiguration {
 
 	@Bean
-	Artifactory artifactory(ArtifactoryDeployProperties properties, RestClient.Builder restClientBuilder) {
-		return new HttpArtifactory(restClientBuilder, properties.server().uri(), properties.server().username(),
+	Artifactory artifactory(Logger logger, ArtifactoryDeployProperties properties,
+			RestClient.Builder restClientBuilder) {
+		return new HttpArtifactory(logger, restClientBuilder, properties.server().uri(), properties.server().username(),
 				properties.server().password());
 	}
 
