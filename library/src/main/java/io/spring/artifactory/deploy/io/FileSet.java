@@ -95,7 +95,7 @@ public final class FileSet implements Iterable<File> {
 	 * @return the file set
 	 */
 	public static FileSet of(File... files) {
-		Assert.notNull(files, "Files must not be null");
+		Assert.notNull(files, "'files' must not be null");
 		return of(Arrays.asList(files));
 	}
 
@@ -105,7 +105,7 @@ public final class FileSet implements Iterable<File> {
 	 * @return the file set
 	 */
 	public static FileSet of(List<File> files) {
-		Assert.notNull(files, "Files must not be null");
+		Assert.notNull(files, "'files' must not be null");
 		MultiValueMap<File, File> filesByParent = getFilesByParent(files);
 		Map<File, String> roots = getRoots(filesByParent);
 		Comparator<File> comparator = Comparator.comparing(File::getParent);

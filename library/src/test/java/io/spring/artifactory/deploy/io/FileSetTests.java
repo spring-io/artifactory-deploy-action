@@ -51,13 +51,13 @@ class FileSetTests {
 	@Test
 	void ofWhenArrayIsNullThrowsException() {
 		assertThatIllegalArgumentException().isThrownBy(() -> FileSet.of((File[]) null))
-			.withMessage("Files must not be null");
+			.withMessage("'files' must not be null");
 	}
 
 	@Test
 	void ofWhenListIsNullThrowsException() {
 		assertThatIllegalArgumentException().isThrownBy(() -> FileSet.of((List<File>) null))
-			.withMessage("Files must not be null");
+			.withMessage("'files' must not be null");
 	}
 
 	@Test

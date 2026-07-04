@@ -145,25 +145,25 @@ class ArmoredAsciiSignerTests {
 	void getWhenClockIsNullThrowsException() {
 		assertThatIllegalArgumentException()
 			.isThrownBy(() -> ArmoredAsciiSigner.get((Clock) null, this.signingKeyContent, this.passphrase, null))
-			.withMessage("Clock must not be null");
+			.withMessage("'clock' must not be null");
 	}
 
 	@Test
 	void getWhenSigningKeyIsNullThrowsException() {
 		assertThatIllegalArgumentException()
 			.isThrownBy(() -> ArmoredAsciiSigner.get((String) null, this.passphrase, null))
-			.withMessage("SigningKey must not be null");
+			.withMessage("'signingKey' must not be null");
 	}
 
 	@Test
 	void getWhenSigningKeyIsEmptyThrowsException() {
 		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get("", this.passphrase, null))
-			.withMessage("SigningKey must not be empty");
+			.withMessage("'signingKey' must not be empty");
 	}
 
 	@Test
 	void getWhenSigningKeyIsMultiLineWithoutHeaderThrowsException() {
-		assertThatIllegalArgumentException().isThrownBy(() -> ArmoredAsciiSigner.get("ab\ncd", this.passphrase, null))
+		assertThatIllegalStateException().isThrownBy(() -> ArmoredAsciiSigner.get("ab\ncd", this.passphrase, null))
 			.withMessage("Signing key does not contain a PGP private key block and does not reference a file");
 	}
 
@@ -178,7 +178,7 @@ class ArmoredAsciiSignerTests {
 	void getWhenPassphraseIsNullThrowsException() {
 		assertThatIllegalArgumentException()
 			.isThrownBy(() -> ArmoredAsciiSigner.get(this.signingKeyContent, null, null))
-			.withMessage("Passphrase must not be null");
+			.withMessage("'passphrase' must not be null");
 	}
 
 	@Test
@@ -206,7 +206,7 @@ class ArmoredAsciiSignerTests {
 	void signWithStringWhenSourceIsNullThrowsException() throws Exception {
 		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThatIllegalArgumentException().isThrownBy(() -> signer.sign((String) null))
-			.withMessage("Source must not be null");
+			.withMessage("'source' must not be null");
 	}
 
 	@Test
@@ -219,7 +219,7 @@ class ArmoredAsciiSignerTests {
 	void signWithInputStreamSourceWhenSourceIsNullThrowsException() throws Exception {
 		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThatIllegalArgumentException().isThrownBy(() -> signer.sign((InputStreamSource) null))
-			.withMessage("Source must not be null");
+			.withMessage("'source' must not be null");
 	}
 
 	@Test
@@ -232,7 +232,7 @@ class ArmoredAsciiSignerTests {
 	void signWithInputStreamWhenSourceIsNullThrowsException() throws Exception {
 		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThatIllegalArgumentException().isThrownBy(() -> signer.sign((InputStream) null))
-			.withMessage("Source must not be null");
+			.withMessage("'source' must not be null");
 	}
 
 	@Test
@@ -247,14 +247,14 @@ class ArmoredAsciiSignerTests {
 	void signWithInputStreamAndOutputStreamWritesWhenSourceIsNullThrowsException() throws IOException {
 		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThatIllegalArgumentException().isThrownBy(() -> signer.sign(null, new ByteArrayOutputStream()))
-			.withMessage("Source must not be null");
+			.withMessage("'source' must not be null");
 	}
 
 	@Test
 	void signWithInputStreamAndOutputStreamWritesWhenDestinationIsNullThrowsException() throws Exception {
 		ArmoredAsciiSigner signer = ArmoredAsciiSigner.get(FIXED, this.signingKeyContent, this.passphrase, null);
 		assertThatIllegalArgumentException().isThrownBy(() -> signer.sign(new FileInputStream(this.sourceFile), null))
-			.withMessage("Destination must not be null");
+			.withMessage("'destination' must not be null");
 	}
 
 	@Test

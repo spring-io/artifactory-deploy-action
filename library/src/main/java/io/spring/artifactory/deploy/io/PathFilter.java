@@ -42,8 +42,8 @@ public class PathFilter {
 	 * @param exclude the patterns to exclude
 	 */
 	public PathFilter(List<String> include, List<String> exclude) {
-		Assert.notNull(include, "Include must not be null");
-		Assert.notNull(exclude, "Exclude must not be null");
+		Assert.notNull(include, "'include' must not be null");
+		Assert.notNull(exclude, "'exclude' must not be null");
 		this.include = include;
 		this.exclude = exclude;
 	}

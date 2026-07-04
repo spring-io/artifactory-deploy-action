@@ -52,7 +52,7 @@ public enum MavenVersionType {
 	 * @return the corresponding {@link MavenVersionType}
 	 */
 	public static MavenVersionType fromVersion(String version) {
-		Assert.hasLength(version, "Version must not be empty");
+		Assert.hasLength(version, "'version' must not be empty");
 		if (version.regionMatches(true, version.length() - SNAPSHOT_VERSION.length(), SNAPSHOT_VERSION, 0,
 				SNAPSHOT_VERSION.length())) {
 			return SNAPSHOT;

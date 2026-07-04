@@ -46,7 +46,7 @@ public record CiAgent(String name, String version) {
 	 * @param version the version of the CI agent
 	 */
 	public CiAgent {
-		Assert.hasText(name, "Name must not be empty");
+		Assert.hasText(name, "'name' must not be empty");
 	}
 
 }

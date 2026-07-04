@@ -71,8 +71,8 @@ public record BuildInfo(
 	 */
 	public BuildInfo(String name, String number, CiAgent agent, BuildAgent buildAgent, Instant started, String url,
 			List<Vcs> vcs, List<BuildModule> modules) {
-		Assert.hasText(name, "Name must not be empty");
-		Assert.hasText(number, "Number must not be empty");
+		Assert.hasText(name, "'name' must not be empty");
+		Assert.hasText(number, "'number' must not be empty");
 		this.name = name;
 		this.number = number;
 		this.agent = agent;

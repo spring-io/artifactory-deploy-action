@@ -144,7 +144,7 @@ public final class ArmoredAsciiSigner {
 	 * @throws IOException on IO error
 	 */
 	public String sign(String source) throws IOException {
-		Assert.notNull(source, "Source must not be null");
+		Assert.notNull(source, "'source' must not be null");
 		return sign(new ByteArrayInputStream(source.getBytes(StandardCharsets.UTF_8)));
 	}
 
@@ -155,7 +155,7 @@ public final class ArmoredAsciiSigner {
 	 * @throws IOException on IO error
 	 */
 	public String sign(InputStreamSource source) throws IOException {
-		Assert.notNull(source, "Source must not be null");
+		Assert.notNull(source, "'source' must not be null");
 		return sign(source.getInputStream());
 	}
 
@@ -166,7 +166,7 @@ public final class ArmoredAsciiSigner {
 	 * @throws IOException on IO error
 	 */
 	public String sign(InputStream source) throws IOException {
-		Assert.notNull(source, "Source must not be null");
+		Assert.notNull(source, "'source' must not be null");
 		ByteArrayOutputStream destination = new ByteArrayOutputStream();
 		sign(source, destination);
 		return destination.toString(StandardCharsets.UTF_8);
@@ -179,8 +179,8 @@ public final class ArmoredAsciiSigner {
 	 * @throws IOException on IO error
 	 */
 	public void sign(InputStream source, OutputStream destination) throws IOException {
-		Assert.notNull(source, "Source must not be null");
-		Assert.notNull(destination, "Destination must not be null");
+		Assert.notNull(source, "'source' must not be null");
+		Assert.notNull(destination, "'destination' must not be null");
 		try (destination; ArmoredOutputStream armoredOutputStream = ArmoredOutputStream.builder().build(destination)) {
 			sign(source, armoredOutputStream);
 		}
@@ -237,15 +237,15 @@ public final class ArmoredAsciiSigner {
 	}
 
 	static ArmoredAsciiSigner get(Clock clock, String signingKey, String passphrase, String keyId) throws IOException {
-		Assert.notNull(clock, "Clock must not be null");
-		Assert.notNull(signingKey, "SigningKey must not be null");
-		Assert.hasText(signingKey, "SigningKey must not be empty");
-		Assert.notNull(passphrase, "Passphrase must not be null");
+		Assert.notNull(clock, "'clock' must not be null");
+		Assert.notNull(signingKey, "'signingKey' must not be null");
+		Assert.hasText(signingKey, "'signingKey' must not be empty");
+		Assert.notNull(passphrase, "'passphrase' must not be null");
 		if (isArmoredAscii(signingKey)) {
 			byte[] bytes = signingKey.getBytes(StandardCharsets.UTF_8);
 			return new ArmoredAsciiSigner(clock, new ByteArrayInputStream(bytes), passphrase, keyId);
 		}
-		Assert.isTrue(!signingKey.contains("\n"),
+		Assert.state(!signingKey.contains("\n"),
 				"Signing key does not contain a PGP private key block and does not reference a file");
 		return new ArmoredAsciiSigner(clock, new FileInputStream(signingKey), passphrase, keyId);
 	}

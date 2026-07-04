@@ -50,8 +50,9 @@ public class DeployableFileArtifact implements DeployableArtifact {
 	 * @param checksums pre-computed checksums, or {@code null} to compute on demand
 	 */
 	public DeployableFileArtifact(String path, File file, Map<String, String> properties, Checksums checksums) {
-		Assert.isTrue(file.exists(), "File '" + file + "' does not exist");
-		Assert.isTrue(file.isFile(), "File '" + file + "' does not refer to a file");
+		Assert.notNull(file, "'file' must not be null");
+		Assert.isTrue(file.exists(), "'file' '" + file + "' does not exist");
+		Assert.isTrue(file.isFile(), "'file' '" + file + "' does not refer to a file");
 		this.path = path;
 		this.properties = (properties != null) ? Collections.unmodifiableMap(new LinkedHashMap<>(properties))
 				: Collections.emptyMap();
@@ -94,6 +95,8 @@ public class DeployableFileArtifact implements DeployableArtifact {
 	 * @return the path of the file relative to the root, starting with {@code /}
 	 */
 	public static String calculatePath(File root, File file) {
+		Assert.notNull(root, "'root' must not be null");
+		Assert.notNull(file, "'file' must not be null");
 		String rootPath = root.getAbsolutePath();
 		String filePath = file.getAbsolutePath();
 		Assert.isTrue(filePath.startsWith(rootPath), "File '" + root + "' is not a parent of '" + file + "'");

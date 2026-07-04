@@ -40,10 +40,10 @@ public record BuildArtifact(String type, String sha1, String md5, String name) {
 	 * @param name name of the artifact
 	 */
 	public BuildArtifact {
-		Assert.hasText(type, "Type must not be empty");
-		Assert.hasText(sha1, "SHA1 must not be empty");
-		Assert.hasText(md5, "MD5 must not be empty");
-		Assert.hasText(name, "Name must not be empty");
+		Assert.hasText(type, "'type' must not be empty");
+		Assert.hasText(sha1, "'sha1' must not be empty");
+		Assert.hasText(md5, "'md5' must not be empty");
+		Assert.hasText(name, "'name' must not be empty");
 	}
 
 }

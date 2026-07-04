@@ -90,7 +90,7 @@ public class HttpArtifactory implements Artifactory {
 	@Override
 	public void deploy(String repository, DeployableArtifact artifact) {
 		try {
-			Assert.notNull(artifact, "Artifact must not be null");
+			Assert.notNull(artifact, "'artifact' must not be null");
 			if (artifact.getSize() <= CHECKSUM_THRESHOLD) {
 				deployUsingContent(repository, artifact);
 				return;

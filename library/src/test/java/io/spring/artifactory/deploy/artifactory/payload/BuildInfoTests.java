@@ -71,14 +71,14 @@ class BuildInfoTests {
 	void createWhenBuildNameIsEmptyThrowsException() {
 		assertThatIllegalArgumentException()
 			.isThrownBy(() -> new BuildInfo("", BUILD_NUMBER, CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI, VCS, MODULES))
-			.withMessage("Name must not be empty");
+			.withMessage("'name' must not be empty");
 	}
 
 	@Test
 	void createWhenBuildNumberIsEmptyThrowsException() {
 		assertThatIllegalArgumentException()
 			.isThrownBy(() -> new BuildInfo(BUILD_NAME, "", CI_AGENT, BUILD_AGENT, STARTED, BUILD_URI, VCS, MODULES))
-			.withMessage("Number must not be empty");
+			.withMessage("'number' must not be empty");
 	}
 
 	@Test

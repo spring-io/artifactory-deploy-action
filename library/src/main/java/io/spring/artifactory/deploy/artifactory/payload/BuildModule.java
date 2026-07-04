@@ -39,7 +39,7 @@ public record BuildModule(String id, List<BuildArtifact> artifacts) {
 	 * @param artifacts the artifacts of the module
 	 */
 	public BuildModule(String id, List<BuildArtifact> artifacts) {
-		Assert.hasText(id, "ID must not be empty");
+		Assert.hasText(id, "'id' must not be empty");
 		this.id = id;
 		this.artifacts = (artifacts != null) ? Collections.unmodifiableList(new ArrayList<>(artifacts))
 				: Collections.emptyList();

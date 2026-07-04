@@ -50,7 +50,7 @@ class BuildModuleTests {
 	@Test
 	void createWhenIdIsEmptyThrowsException() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new BuildModule("", null))
-			.withMessage("ID must not be empty");
+			.withMessage("'id' must not be empty");
 	}
 
 	@Test

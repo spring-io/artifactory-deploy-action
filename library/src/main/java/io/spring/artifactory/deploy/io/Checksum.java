@@ -124,7 +124,7 @@ public enum Checksum {
 	 */
 	public static Map<Checksum, String> calculateAll(Resource content) {
 		try {
-			Assert.notNull(content, "Content must not be null");
+			Assert.notNull(content, "'content' must not be null");
 			return calculateAll(content.getInputStream());
 		}
 		catch (IOException ex) {
@@ -138,12 +138,12 @@ public enum Checksum {
 	 * @return a map of all checksums
 	 */
 	public static Map<Checksum, String> calculateAll(String content) {
-		Assert.notNull(content, "Content must not be null");
+		Assert.notNull(content, "'content' must not be null");
 		return calculateAll(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
 	}
 
 	private static Map<Checksum, String> calculateAll(InputStream content) {
-		Assert.notNull(content, "Content must not be null");
+		Assert.notNull(content, "'content' must not be null");
 		try {
 			try {
 				Map<Checksum, DigestInputStream> streams = new LinkedHashMap<>();
