@@ -21,12 +21,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -48,9 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ArtifactoryDeployIntegrationTests {
 
 	@Container
-	static GenericContainer<?> container = new GenericContainer<>("docker.bintray.io/jfrog/artifactory-oss:7.12.10")
-		.waitingFor(Wait.forHttp("/artifactory/api/system/ping").withStartupTimeout(Duration.ofMinutes(15)))
-		.withExposedPorts(8081);
+	static ArtifactoryContainer container = new ArtifactoryContainer();
 
 	@Test
 	void deploy(@TempDir File temp) throws IOException {
@@ -60,18 +55,18 @@ class ArtifactoryDeployIntegrationTests {
 		Files.writeString(new File(example, "module-1.0.0.pom").toPath(), "pom-file-content");
 		ArtifactoryDeploy.main(new String[] {
 				String.format("--artifactory.server.uri=http://%s:%s/artifactory", container.getHost(),
-						container.getFirstMappedPort()),
+						container.getMappedPort(8081)),
 				"--artifactory.server.username=admin", "--artifactory.server.password=password",
 				"--artifactory.vcs.revision=b8993e365706816aba4f25717851a18c9cd0d873",
-				"--artifactory.deploy.repository=example-repo-local", "--artifactory.deploy.build.number=12",
+				"--artifactory.deploy.repository=libs-release-local", "--artifactory.deploy.build.number=12",
 				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
 				"--artifactory.deploy.threads=2" });
 		RestTemplate rest = new RestTemplateBuilder().basicAuthentication("admin", "password")
 			.baseUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
 			.build();
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
 			.isEqualTo("jar-file-content");
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.pom", String.class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.pom", String.class))
 			.isEqualTo("pom-file-content");
 		JsonContent<?> buildInfoJson = new BasicJsonTester(getClass())
 			.from(rest.getForObject("/api/build/integration-test/12", String.class));
@@ -94,17 +89,17 @@ class ArtifactoryDeployIntegrationTests {
 		Files.writeString(new File(example, "module-1.0.0.pom").toPath(), "pom-file-content");
 		ArtifactoryDeploy.main(new String[] {
 				String.format("--artifactory.server.uri=http://%s:%s/artifactory", container.getHost(),
-						container.getFirstMappedPort()),
+						container.getMappedPort(8081)),
 				"--artifactory.server.username=admin", "--artifactory.server.password=password",
-				"--artifactory.deploy.repository=example-repo-local", "--artifactory.deploy.build.number=12",
+				"--artifactory.deploy.repository=libs-release-local", "--artifactory.deploy.build.number=12",
 				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
 				"--artifactory.deploy.threads=2" });
 		RestTemplate rest = new RestTemplateBuilder().basicAuthentication("admin", "password")
 			.baseUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
 			.build();
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
 			.isEqualTo("jar-file-content");
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.pom", String.class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.pom", String.class))
 			.isEqualTo("pom-file-content");
 		String response = rest.getForObject("/api/build/integration-test/12", String.class);
 		System.out.println(response);
@@ -126,20 +121,20 @@ class ArtifactoryDeployIntegrationTests {
 		Files.writeString(new File(example, "example-docs-1.0.0.pom").toPath(), "pom-file-content");
 		ArtifactoryDeploy.main(new String[] {
 				String.format("--artifactory.server.uri=http://%s:%s/artifactory", container.getHost(),
-						container.getFirstMappedPort()),
+						container.getMappedPort(8081)),
 				"--artifactory.server.username=admin", "--artifactory.server.password=password",
 				"--artifactory.vcs.revision=b8993e365706816aba4f25717851a18c9cd0d873",
-				"--artifactory.deploy.repository=example-repo-local", "--artifactory.deploy.build.number=13",
+				"--artifactory.deploy.repository=libs-release-local", "--artifactory.deploy.build.number=13",
 				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
 				"--artifactory.deploy.threads=2",
 				"--artifactory.deploy.artifact-properties=/**/example-docs-*.zip::zip.type=docs,zip.deployed=false" });
 		RestTemplate rest = new RestTemplateBuilder().basicAuthentication("admin", "password")
 			.baseUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
 			.build();
-		assertThat(rest.getForObject("/example-repo-local/com/example/example-docs/1.0.0/example-docs-1.0.0.zip",
+		assertThat(rest.getForObject("/libs-release-local/com/example/example-docs/1.0.0/example-docs-1.0.0.zip",
 				String.class))
 			.isEqualTo("jar-file-content");
-		assertThat(rest.getForObject("/example-repo-local/com/example/example-docs/1.0.0/example-docs-1.0.0.pom",
+		assertThat(rest.getForObject("/libs-release-local/com/example/example-docs/1.0.0/example-docs-1.0.0.pom",
 				String.class))
 			.isEqualTo("pom-file-content");
 		String buildInfo = rest.getForObject("/api/build/integration-test/13", String.class);
@@ -155,7 +150,7 @@ class ArtifactoryDeployIntegrationTests {
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules").hasSize(1);
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules.[0].artifacts").hasSize(2);
 		String zipProperties = rest.getForObject(
-				"/api/storage/example-repo-local/com/example/example-docs/1.0.0/example-docs-1.0.0.zip?properties",
+				"/api/storage/libs-release-local/com/example/example-docs/1.0.0/example-docs-1.0.0.zip?properties",
 				String.class);
 		JsonContent<?> zipPropertiesJson = jsonTester.from(zipProperties);
 		assertThat(zipPropertiesJson).extractingJsonPathMapValue("properties")
@@ -164,7 +159,7 @@ class ArtifactoryDeployIntegrationTests {
 			.containsExactly("false");
 		assertThat(zipPropertiesJson).extractingJsonPathArrayValue("properties['zip.type']").containsExactly("docs");
 		String pomProperties = rest.getForObject(
-				"/api/storage/example-repo-local/com/example/example-docs/1.0.0/example-docs-1.0.0.pom?properties",
+				"/api/storage/libs-release-local/com/example/example-docs/1.0.0/example-docs-1.0.0.pom?properties",
 				String.class);
 		JsonContent<?> pomPropertiesJson = jsonTester.from(pomProperties);
 		assertThat(pomPropertiesJson).extractingJsonPathMapValue("properties")
@@ -180,23 +175,23 @@ class ArtifactoryDeployIntegrationTests {
 		String signingKey = readResource("/test-private.txt");
 		ArtifactoryDeploy.main(new String[] {
 				String.format("--artifactory.server.uri=http://%s:%s/artifactory", container.getHost(),
-						container.getFirstMappedPort()),
+						container.getMappedPort(8081)),
 				"--artifactory.server.username=admin", "--artifactory.server.password=password",
 				"--artifactory.vcs.revision=b8993e365706816aba4f25717851a18c9cd0d873",
-				"--artifactory.deploy.repository=example-repo-local", "--artifactory.deploy.build.number=14",
+				"--artifactory.deploy.repository=libs-release-local", "--artifactory.deploy.build.number=14",
 				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
 				"--artifactory.deploy.threads=2", "--artifactory.signing.key=" + signingKey,
 				"--artifactory.signing.passphrase=password" });
 		RestTemplate rest = new RestTemplateBuilder().basicAuthentication("admin", "password")
 			.baseUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
 			.build();
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
 			.isEqualTo("jar-file-content");
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.pom", String.class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.pom", String.class))
 			.isEqualTo("pom-file-content");
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.jar.asc", byte[].class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.jar.asc", byte[].class))
 			.isNotEmpty();
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.pom.asc", byte[].class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.pom.asc", byte[].class))
 			.isNotEmpty();
 		String buildInfo = rest.getForObject("/api/build/integration-test/14", String.class);
 		BasicJsonTester jsonTester = new BasicJsonTester(getClass());
@@ -221,24 +216,23 @@ class ArtifactoryDeployIntegrationTests {
 		String signingKey = readResource("/test-private-subkey.txt");
 		ArtifactoryDeploy.main(new String[] {
 				String.format("--artifactory.server.uri=http://%s:%s/artifactory", container.getHost(),
-						container.getFirstMappedPort()),
+						container.getMappedPort(8081)),
 				"--artifactory.server.username=admin", "--artifactory.server.password=password",
 				"--artifactory.vcs.revision=b8993e365706816aba4f25717851a18c9cd0d873",
-				"--artifactory.deploy.repository=example-repo-local", "--artifactory.deploy.build.number=15",
+				"--artifactory.deploy.repository=libs-release-local", "--artifactory.deploy.build.number=15",
 				"--artifactory.deploy.build.name=integration-test", "--artifactory.deploy.folder=" + temp,
 				"--artifactory.deploy.threads=2", "--artifactory.signing.key=" + signingKey,
 				"--artifactory.signing.passphrase=password", "--artifactory.signing.key-id=C3E2E826" });
-
 		RestTemplate rest = new RestTemplateBuilder().basicAuthentication("admin", "password")
 			.baseUri("http://%s:%s/artifactory/".formatted(container.getHost(), container.getFirstMappedPort()))
 			.build();
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.jar", String.class))
 			.isEqualTo("jar-file-content");
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.pom", String.class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.pom", String.class))
 			.isEqualTo("pom-file-content");
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.jar.asc", byte[].class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.jar.asc", byte[].class))
 			.isNotEmpty();
-		assertThat(rest.getForObject("/example-repo-local/com/example/module/1.0.0/module-1.0.0.pom.asc", byte[].class))
+		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.pom.asc", byte[].class))
 			.isNotEmpty();
 		String buildInfo = rest.getForObject("/api/build/integration-test/15", String.class);
 		BasicJsonTester jsonTester = new BasicJsonTester(getClass());
