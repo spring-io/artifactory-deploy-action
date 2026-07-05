@@ -20,10 +20,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Set;
 
 import io.spring.artifactory.deploy.artifactory.payload.BuildInfo;
 import io.spring.artifactory.deploy.artifactory.payload.Checksums;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
+import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.system.Logger;
 
 import org.springframework.http.HttpHeaders;
@@ -217,6 +219,48 @@ public class HttpArtifactory implements Artifactory {
 		URI uri = builder.build();
 		this.logger.debug("Publishing build info to {}", uri);
 		return uri;
+	}
+
+	@Override
+	public void promoteBuild(String buildName, String buildNumber, Promotion promotion) {
+		Assert.hasText(buildName, "'buildName' must not be empty");
+		Assert.hasText(buildNumber, "'buildNumber' must not be empty");
+		Assert.notNull(promotion, "'promotion' must not be null");
+		this.restClient.post()
+			.uri((builder) -> promoteBuildUri(builder, buildName, buildNumber))
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(promotion)
+			.retrieve()
+			.toBodilessEntity();
+
+	}
+
+	private URI promoteBuildUri(UriBuilder builder, String buildName, String buildNumber) {
+		return builder.pathSegment("api", "build", "promote", buildName, buildNumber).build();
+	}
+
+	@Override
+	public void deleteBuild(String buildName, BuildNumbers buildNumbers, Delete... delete) {
+		Assert.hasText(buildName, "'buildName' must not be empty");
+		this.restClient.delete()
+			.uri((builder) -> deleteBuildUri(builder, buildName, buildNumbers, Set.of(delete)))
+			.retrieve()
+			.toBodilessEntity();
+	}
+
+	private URI deleteBuildUri(UriBuilder builder, String buildName, BuildNumbers buildNumbers, Set<Delete> delete) {
+		builder = builder.pathSegment("api", "build", "promote", buildName);
+		if (buildNumbers != null && !buildNumbers.value().isEmpty()) {
+			builder = builder.queryParam("buildNumbers",
+					StringUtils.collectionToCommaDelimitedString(buildNumbers.value()));
+		}
+		if (delete.contains(Delete.ARTIFACTS)) {
+			builder = builder.queryParam("artifacts", "1");
+		}
+		if (delete.contains(Delete.ALL_BUILDS)) {
+			builder = builder.queryParam("deleteAll", "1");
+		}
+		return builder.build();
 	}
 
 }

@@ -31,12 +31,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
+import io.spring.artifactory.deploy.artifactory.Artifactory.BuildNumbers;
 import io.spring.artifactory.deploy.artifactory.Artifactory.BuildRun;
+import io.spring.artifactory.deploy.artifactory.Artifactory.Delete;
 import io.spring.artifactory.deploy.artifactory.payload.BuildArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.BuildModule;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableFileArtifact;
+import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.artifactory.payload.Vcs;
 import io.spring.artifactory.deploy.system.Logger;
 import org.assertj.core.api.Assertions;
@@ -77,6 +81,10 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  * @author Andy Wilkinson
  */
 class HttpArtifactoryTests {
+
+	private static final Instant STARTED = ZonedDateTime
+		.parse("2014-09-30T12:00:19.893123Z", DateTimeFormatter.ISO_DATE_TIME)
+		.toInstant();
 
 	private final MockServerRestClientCustomizer customizer = new MockServerRestClientCustomizer();
 
@@ -277,6 +285,42 @@ class HttpArtifactoryTests {
 		this.artifactory.addBuildRun("my-project", "my-build",
 				new BuildRun("5678", started, URI.create("https://ci.example.com"), vcs, modules));
 		this.server.verify();
+	}
+
+	@Test
+	void promoteBuild() {
+		this.server.expect(requestTo("https://repo.example.com/api/build/promote/my-project/1"))
+			.andExpect(method(HttpMethod.POST))
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andExpect(jsonContent(getResource("payload/promotion.json")))
+			.andRespond(withSuccess());
+		Promotion promotion = new Promotion("status", "comment", "user", STARTED, true, "from", "to", true, true, false,
+				Set.of("s1", "s2"));
+		this.artifactory.promoteBuild("my-project", "1", promotion);
+	}
+
+	@Test
+	void deleteBuildWhenSingleBuild() {
+		this.server.expect(requestTo("https://repo.example.com/api/build/promote/my-project"))
+			.andExpect(method(HttpMethod.DELETE))
+			.andRespond(withSuccess());
+		this.artifactory.deleteBuild("my-project");
+	}
+
+	@Test
+	void deleteBuildWhenHasBuildNumbers() {
+		this.server.expect(requestTo("https://repo.example.com/api/build/promote/my-project?buildNumbers=1,2,3"))
+			.andExpect(method(HttpMethod.DELETE))
+			.andRespond(withSuccess());
+		this.artifactory.deleteBuild("my-project", BuildNumbers.of("1", "2", "3"));
+	}
+
+	@Test
+	void deleteBuildWhenHasDeleteOptions() {
+		this.server.expect(requestTo("https://repo.example.com/api/build/promote/my-project?artifacts=1&deleteAll=1"))
+			.andExpect(method(HttpMethod.DELETE))
+			.andRespond(withSuccess());
+		this.artifactory.deleteBuild("my-project", Delete.ARTIFACTS, Delete.ALL_BUILDS);
 	}
 
 	private RequestMatcher jsonContent(Resource expected) {

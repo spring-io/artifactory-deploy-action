@@ -18,10 +18,15 @@ package io.spring.artifactory.deploy.artifactory;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import io.spring.artifactory.deploy.artifactory.payload.BuildModule;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
+import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.artifactory.payload.Vcs;
 
 /**
@@ -39,6 +44,8 @@ public interface Artifactory {
 	 * Deploy the specified artifact to the repository.
 	 * @param repository the name of the repository
 	 * @param artifact the artifact to deploy
+	 * @see <a href="https://docs.jfrog.com/artifactory/reference/deployartifact">JFrog
+	 * API documentation</a>
 	 */
 	void deploy(String repository, DeployableArtifact artifact);
 
@@ -48,8 +55,53 @@ public interface Artifactory {
 	 * info
 	 * @param buildName the name of the build
 	 * @param buildRun the build run to add
+	 * @see <a href="https://docs.jfrog.com/integrations/reference/uploadbuild">JFrog API
+	 * documentation</a>
 	 */
 	void addBuildRun(String project, String buildName, BuildRun buildRun);
+
+	/**
+	 * Promotes a build.
+	 * @param buildName the build name
+	 * @param buildNumber the build number
+	 * @param promotion the promotion to perform
+	 * @see <a href="https://docs.jfrog.com/integrations/reference/promoteBuild">JFrog API
+	 * documentation</a>
+	 */
+	void promoteBuild(String buildName, String buildNumber, Promotion promotion);
+
+	/**
+	 * Removes builds stored in Artifactory.
+	 * @param buildName the build name
+	 * @param delete any additional deletion operations
+	 * @see <a href="https://docs.jfrog.com/integrations/reference/deletebuilds">JFrog API
+	 * documentation</a>
+	 */
+	default void deleteBuild(String buildName, Delete... delete) {
+		deleteBuild(buildName, BuildNumbers.none(), delete);
+	}
+
+	/**
+	 * Removes builds stored in Artifactory.
+	 * @param buildName the build name
+	 * @param buildNumber the build number to delete
+	 * @param delete any additional deletion operations
+	 * @see <a href="https://docs.jfrog.com/integrations/reference/deletebuilds">JFrog API
+	 * documentation</a>
+	 */
+	default void deleteBuild(String buildName, String buildNumber, Delete... delete) {
+		deleteBuild(buildName, BuildNumbers.of(buildNumber), delete);
+	}
+
+	/**
+	 * Removes builds stored in Artifactory.
+	 * @param buildName the build name
+	 * @param buildNumbers the build numbers to delete
+	 * @param delete any additional deletion operations
+	 * @see <a href="https://docs.jfrog.com/integrations/reference/deletebuilds">JFrog API
+	 * documentation</a>
+	 */
+	void deleteBuild(String buildName, BuildNumbers buildNumbers, Delete... delete);
 
 	/**
 	 * A build run.
@@ -59,9 +111,44 @@ public interface Artifactory {
 	 * @param uri the URI of the build, typically on a CI server
 	 * @param vcs the version control system that was used for the build
 	 * @param modules the modules produced by the build
-	 *
 	 */
 	record BuildRun(String number, Instant started, URI uri, Vcs vcs, List<BuildModule> modules) {
+	}
+
+	/**
+	 * A set of build numbers.
+	 *
+	 * @param value the build numbers
+	 */
+	record BuildNumbers(Set<String> value) {
+
+		private static final BuildNumbers NONE = new BuildNumbers(Collections.emptySet());
+
+		static BuildNumbers of(String... buildNumbers) {
+			return new BuildNumbers(Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(buildNumbers))));
+		}
+
+		static BuildNumbers none() {
+			return NONE;
+		}
+
+	}
+
+	/**
+	 * Delete operations.
+	 */
+	enum Delete {
+
+		/**
+		 * Delete artifacts.
+		 */
+		ARTIFACTS,
+
+		/**
+		 * Delete all builds.
+		 */
+		ALL_BUILDS
+
 	}
 
 }

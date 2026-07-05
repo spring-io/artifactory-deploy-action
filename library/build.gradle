@@ -60,6 +60,9 @@ dependencies {
 	testImplementation("org.assertj:assertj-core")
 	testImplementation("org.mockito:mockito-core")
 
+	integrationTestImplementation("org.testcontainers:testcontainers-junit-jupiter")
+	integrationTestImplementation("org.testcontainers:testcontainers")
+
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

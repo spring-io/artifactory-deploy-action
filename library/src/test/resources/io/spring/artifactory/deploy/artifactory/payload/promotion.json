@@ -1,0 +1,16 @@
+{
+	"status": "status",
+	"comment": "comment",
+	"ciUser": "user",
+	"timestamp": "2014-09-30T12:00:19.893Z",
+	"dryRun": true,
+	"sourceRepo": "from",
+	"targetRepo": "to",
+	"copy": true,
+	"artifacts": true,
+	"dependencies": false,
+	"scopes": [
+		"s1",
+		"s2"
+	]
+}

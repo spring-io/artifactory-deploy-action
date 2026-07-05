@@ -1,0 +1,9 @@
+shared:
+  database:
+    type: derby
+    allowNonPostgresql: true
+localRepositories:
+  libs-test-local:
+    type: maven
+  libs-release-local:
+    type: maven
