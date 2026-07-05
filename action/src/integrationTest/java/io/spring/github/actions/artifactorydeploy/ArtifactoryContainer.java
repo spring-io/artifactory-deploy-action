@@ -48,7 +48,7 @@ class ArtifactoryContainer extends GenericContainer<ArtifactoryContainer> {
 			.waitingFor(Wait.forHttp("/router/api/v1/system/health")
 				.forPort(8082)
 				.forStatusCode(200)
-				.withStartupTimeout(Duration.ofMinutes(1)));
+				.withStartupTimeout(Duration.ofMinutes(15)));
 	}
 
 	/**
