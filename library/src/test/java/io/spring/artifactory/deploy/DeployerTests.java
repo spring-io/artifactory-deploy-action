@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -226,6 +227,33 @@ class DeployerTests {
 			.containsEntry("build.number", "1234")
 			.containsKey("build.timestamp")
 			.containsEntry("foo", "bar");
+	}
+
+	@Test
+	void deployWhenHasNoStartedTimstampDeploysWithoutBuildTimestampProperties() throws Exception {
+		Path artifact = this.tempDir.resolve("com/example/foo/0.0.1/foo-0.0.1.jar");
+		Files.createDirectories(artifact.getParent());
+		Files.createFile(artifact);
+		given(this.directoryScanner.scan(any(File.class))).willReturn(FileSet.of(artifact.toFile()));
+		createDeployer(2).deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, null,
+				this.tempDir, null, null);
+		verify(this.artifactory).deploy(eq("libs-example-local"), this.artifactCaptor.capture());
+		DeployableArtifact deployed = this.artifactCaptor.getValue();
+		assertThat(deployed.getProperties()).doesNotContainKey("build.timestamp");
+	}
+
+	@Test
+	void deployWhenHasSpecificStartedTimstampDeploysWithAdditionalProperties() throws Exception {
+		Path artifact = this.tempDir.resolve("com/example/foo/0.0.1/foo-0.0.1.jar");
+		Files.createDirectories(artifact.getParent());
+		Files.createFile(artifact);
+		given(this.directoryScanner.scan(any(File.class))).willReturn(FileSet.of(artifact.toFile()));
+		Instant started = Instant.ofEpochMilli(1000);
+		createDeployer(2).deploy(REPOSITORY, "1234", BUILD_NAME, createBuildUri(1234), PROJECT, REVISION, started,
+				this.tempDir, null, null);
+		verify(this.artifactory).deploy(eq("libs-example-local"), this.artifactCaptor.capture());
+		DeployableArtifact deployed = this.artifactCaptor.getValue();
+		assertThat(deployed.getProperties()).containsEntry("build.timestamp", "1000");
 	}
 
 	@Test
