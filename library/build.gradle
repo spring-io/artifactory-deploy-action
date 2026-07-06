@@ -46,10 +46,10 @@ publishing {
 dependencies {
 	implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
 
-	api("org.springframework.boot:spring-boot-restclient")
 	api("org.springframework:spring-core")
 	api("org.springframework:spring-web")
-	api("com.fasterxml.jackson.core:jackson-annotations")
+	api("org.springframework.boot:spring-boot-jackson")
+	api("org.springframework.boot:spring-boot-restclient")
 
 	implementation("org.slf4j:slf4j-api")
 	implementation("org.bouncycastle:bcpg-jdk18on:1.79")

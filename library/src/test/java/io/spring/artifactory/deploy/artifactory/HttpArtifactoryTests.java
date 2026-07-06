@@ -50,6 +50,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.skyscreamer.jsonassert.JSONAssert;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.boot.restclient.test.MockServerRestClientCustomizer;
 import org.springframework.core.io.ClassPathResource;
@@ -57,6 +59,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.mock.http.client.MockClientHttpRequest;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.client.RequestMatcher;
@@ -321,6 +324,29 @@ class HttpArtifactoryTests {
 			.andExpect(method(HttpMethod.DELETE))
 			.andRespond(withSuccess());
 		this.artifactory.deleteBuild("my-project", Delete.ARTIFACTS, Delete.ALL_BUILDS);
+	}
+
+	@Test
+	void jsonSerializationWhenRestClientBuildIsConfiguredWithCustomObjectMapperWriteCorrectJson() {
+		RestClient.Builder builder = RestClient.builder().configureMessageConverters((converters) -> {
+			converters.disableDefaults();
+			JsonMapper.Builder mapper = JsonMapper.builder()
+				.propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+			converters.withJsonConverter(new JacksonJsonHttpMessageConverter(mapper));
+		});
+		MockServerRestClientCustomizer customizer = new MockServerRestClientCustomizer();
+		customizer.customize(builder);
+		Artifactory artifactory = new HttpArtifactory(Logger.console(true), builder,
+				URI.create("https://repo.example.com"), "alice", "secret", Duration.ofMillis(10));
+		MockRestServiceServer server = customizer.getServer();
+		server.expect(requestTo("https://repo.example.com/api/build/promote/my-project/1"))
+			.andExpect(method(HttpMethod.POST))
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andExpect(jsonContent(getResource("payload/promotion.json")))
+			.andRespond(withSuccess());
+		Promotion promotion = new Promotion("status", "comment", "user", STARTED, true, "from", "to", true, true, false,
+				Set.of("s1", "s2"));
+		artifactory.promoteBuild("my-project", "1", promotion);
 	}
 
 	private RequestMatcher jsonContent(Resource expected) {

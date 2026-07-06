@@ -32,6 +32,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
@@ -82,6 +83,10 @@ public class HttpArtifactory implements Artifactory {
 	public HttpArtifactory(Logger logger, RestClient.Builder restClientBuilder, URI uri, String username,
 			String password, Duration retryDelay) {
 		this.logger = logger;
+		restClientBuilder = restClientBuilder.clone().configureMessageConverters((converters) -> {
+			converters.registerDefaults();
+			converters.withJsonConverter(new JacksonJsonHttpMessageConverter());
+		});
 		if (StringUtils.hasText(username)) {
 			restClientBuilder = restClientBuilder.defaultHeaders((headers) -> headers.setBasicAuth(username, password));
 		}
