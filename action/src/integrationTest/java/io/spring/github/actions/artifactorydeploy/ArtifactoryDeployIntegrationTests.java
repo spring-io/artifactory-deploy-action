@@ -102,7 +102,6 @@ class ArtifactoryDeployIntegrationTests {
 		assertThat(rest.getForObject("/libs-release-local/com/example/module/1.0.0/module-1.0.0.pom", String.class))
 			.isEqualTo("pom-file-content");
 		String response = rest.getForObject("/api/build/integration-test/12", String.class);
-		System.out.println(response);
 		JsonContent<?> buildInfoJson = new BasicJsonTester(getClass()).from(response);
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.name").isEqualTo("integration-test");
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.number").isEqualTo("12");
