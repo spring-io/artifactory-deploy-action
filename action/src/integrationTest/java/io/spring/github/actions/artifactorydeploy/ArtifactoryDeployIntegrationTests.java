@@ -108,7 +108,7 @@ class ArtifactoryDeployIntegrationTests {
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.number").isEqualTo("12");
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.buildAgent.name").isEqualTo("Artifactory Action");
 		assertThat(buildInfoJson).extractingJsonPathValue("buildInfo.agent.name").isEqualTo("GitHub Actions");
-		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.vcs").hasSize(0);
+		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.vcs").isNullOrEmpty();
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules").hasSize(1);
 		assertThat(buildInfoJson).extractingJsonPathArrayValue("buildInfo.modules.[0].artifacts").hasSize(2);
 	}

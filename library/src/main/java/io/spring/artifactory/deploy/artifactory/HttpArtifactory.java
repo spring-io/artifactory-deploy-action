@@ -22,11 +22,13 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.spring.artifactory.deploy.artifactory.payload.BuildInfo;
 import io.spring.artifactory.deploy.artifactory.payload.Checksums;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.system.Logger;
+import tools.jackson.databind.json.JsonMapper;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -85,7 +87,8 @@ public class HttpArtifactory implements Artifactory {
 		this.logger = logger;
 		restClientBuilder = restClientBuilder.clone().configureMessageConverters((converters) -> {
 			converters.registerDefaults();
-			converters.withJsonConverter(new JacksonJsonHttpMessageConverter());
+			converters.withJsonConverter(new JacksonJsonHttpMessageConverter(JsonMapper.builder()
+				.changeDefaultPropertyInclusion((inclusion) -> inclusion.withValueInclusion(Include.NON_EMPTY))));
 		});
 		if (StringUtils.hasText(username)) {
 			restClientBuilder = restClientBuilder.defaultHeaders((headers) -> headers.setBasicAuth(username, password));
