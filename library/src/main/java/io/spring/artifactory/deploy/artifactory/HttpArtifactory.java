@@ -257,7 +257,7 @@ public class HttpArtifactory implements Artifactory {
 	}
 
 	private URI deleteBuildUri(UriBuilder builder, String buildName, BuildNumbers buildNumbers, Set<Delete> delete) {
-		builder = builder.pathSegment("api", "build", "promote", buildName);
+		builder = builder.pathSegment("api", "build", buildName);
 		if (buildNumbers != null && !buildNumbers.value().isEmpty()) {
 			builder = builder.queryParam("buildNumbers",
 					StringUtils.collectionToCommaDelimitedString(buildNumbers.value()));
