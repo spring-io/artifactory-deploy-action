@@ -303,15 +303,15 @@ class HttpArtifactoryTests {
 	}
 
 	@Test
-	void deleteBuildWhenSingleBuild() {
-		this.server.expect(requestTo("https://repo.example.com/api/build/my-project"))
+	void deleteBuildWhenSingleBuildNumber() {
+		this.server.expect(requestTo("https://repo.example.com/api/build/my-project?buildNumbers=1"))
 			.andExpect(method(HttpMethod.DELETE))
 			.andRespond(withSuccess());
-		this.artifactory.deleteBuild("my-project");
+		this.artifactory.deleteBuild("my-project", "1");
 	}
 
 	@Test
-	void deleteBuildWhenHasBuildNumbers() {
+	void deleteBuildWhenHasMultipleBuildNumbers() {
 		this.server.expect(requestTo("https://repo.example.com/api/build/my-project?buildNumbers=1,2,3"))
 			.andExpect(method(HttpMethod.DELETE))
 			.andRespond(withSuccess());
@@ -320,10 +320,11 @@ class HttpArtifactoryTests {
 
 	@Test
 	void deleteBuildWhenHasDeleteOptions() {
-		this.server.expect(requestTo("https://repo.example.com/api/build/my-project?artifacts=1&deleteAll=1"))
+		this.server
+			.expect(requestTo("https://repo.example.com/api/build/my-project?buildNumbers=1&artifacts=1&deleteAll=1"))
 			.andExpect(method(HttpMethod.DELETE))
 			.andRespond(withSuccess());
-		this.artifactory.deleteBuild("my-project", Delete.ARTIFACTS, Delete.ALL_BUILDS);
+		this.artifactory.deleteBuild("my-project", "1", Delete.ARTIFACTS, Delete.ALL_BUILDS);
 	}
 
 	@Test

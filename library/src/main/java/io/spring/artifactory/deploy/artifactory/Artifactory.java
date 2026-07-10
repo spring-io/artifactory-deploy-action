@@ -29,6 +29,8 @@ import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.artifactory.payload.Vcs;
 
+import org.springframework.util.Assert;
+
 /**
  * Provides access to Artifactory.
  *
@@ -73,17 +75,6 @@ public interface Artifactory {
 	/**
 	 * Removes builds stored in Artifactory.
 	 * @param buildName the build name
-	 * @param delete any additional deletion operations
-	 * @see <a href="https://docs.jfrog.com/integrations/reference/deletebuilds">JFrog API
-	 * documentation</a>
-	 */
-	default void deleteBuild(String buildName, Delete... delete) {
-		deleteBuild(buildName, BuildNumbers.none(), delete);
-	}
-
-	/**
-	 * Removes builds stored in Artifactory.
-	 * @param buildName the build name
 	 * @param buildNumber the build number to delete
 	 * @param delete any additional deletion operations
 	 * @see <a href="https://docs.jfrog.com/integrations/reference/deletebuilds">JFrog API
@@ -122,14 +113,12 @@ public interface Artifactory {
 	 */
 	record BuildNumbers(Set<String> value) {
 
-		private static final BuildNumbers NONE = new BuildNumbers(Collections.emptySet());
+		public BuildNumbers {
+			Assert.notEmpty(value, "'value' must not be empty");
+		}
 
 		static BuildNumbers of(String... buildNumbers) {
 			return new BuildNumbers(Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(buildNumbers))));
-		}
-
-		static BuildNumbers none() {
-			return NONE;
 		}
 
 	}
