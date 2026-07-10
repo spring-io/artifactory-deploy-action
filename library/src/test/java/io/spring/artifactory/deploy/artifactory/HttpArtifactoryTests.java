@@ -36,6 +36,7 @@ import java.util.Set;
 import io.spring.artifactory.deploy.artifactory.Artifactory.BuildNumbers;
 import io.spring.artifactory.deploy.artifactory.Artifactory.BuildRun;
 import io.spring.artifactory.deploy.artifactory.Artifactory.Delete;
+import io.spring.artifactory.deploy.artifactory.Artifactory.PromoteReleaseBundleOperation;
 import io.spring.artifactory.deploy.artifactory.payload.BuildArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.BuildModule;
 import io.spring.artifactory.deploy.artifactory.payload.CreatedReleaseBundle;
@@ -44,6 +45,9 @@ import io.spring.artifactory.deploy.artifactory.payload.DeployableFileArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.Source;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion.OverwriteStrategy;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion.PromotionAuthorizationType;
 import io.spring.artifactory.deploy.artifactory.payload.Vcs;
 import io.spring.artifactory.deploy.system.Logger;
 import org.assertj.core.api.Assertions;
@@ -352,6 +356,21 @@ class HttpArtifactoryTests {
 			.andExpect(method(HttpMethod.DELETE))
 			.andRespond(withSuccess());
 		this.artifactory.deleteReleaseBundle("my-bundle", "2", "my-project", null, false, true);
+	}
+
+	@Test
+	void promoteReleaseBunldeBuild() {
+		this.server.expect(requestTo(
+				"https://repo.example.com/lifecycle/api/v2/promotion/records/my-build/1?async=false&operation=move&project=my-project&repository_key=my-repo"))
+			.andExpect(method(HttpMethod.POST))
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andExpect(jsonContent(getResource("payload/release-bundle-promotion.json")))
+			.andRespond(withSuccess(getResource("payload/promoted-release-bundle.json"), MediaType.APPLICATION_JSON));
+		ReleaseBundlePromotion promotion = new ReleaseBundlePromotion("st", List.of("a", "b"), List.of("c", "d"),
+				List.of("e"), List.of("f"), OverwriteStrategy.LATEST, Map.of("foo", "bar"),
+				PromotionAuthorizationType.APP_TRUST_AUTHORIZED_PROMOTION);
+		this.artifactory.promoteReleaseBundle("my-build", "1", false, PromoteReleaseBundleOperation.MOVE, "my-project",
+				"my-repo", promotion);
 	}
 
 	@Test

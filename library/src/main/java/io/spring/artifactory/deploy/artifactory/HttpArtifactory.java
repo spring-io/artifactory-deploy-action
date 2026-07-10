@@ -19,6 +19,7 @@ package io.spring.artifactory.deploy.artifactory;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,8 +28,10 @@ import io.spring.artifactory.deploy.artifactory.payload.BuildInfo;
 import io.spring.artifactory.deploy.artifactory.payload.Checksums;
 import io.spring.artifactory.deploy.artifactory.payload.CreatedReleaseBundle;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
+import io.spring.artifactory.deploy.artifactory.payload.PromotedReleaseBundle;
 import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion;
 import io.spring.artifactory.deploy.system.Logger;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -321,7 +324,6 @@ public class HttpArtifactory implements Artifactory {
 					isRemoteDeleteByDistribution))
 			.retrieve()
 			.toBodilessEntity();
-
 	}
 
 	private URI deleteReleaseBundleUri(UriBuilder builder, String name, String version, String project,
@@ -338,6 +340,37 @@ public class HttpArtifactory implements Artifactory {
 		}
 		if (isRemoteDeleteByDistribution) {
 			builder = builder.queryParam("is_remote_delete_by_distribution", true);
+		}
+		return builder.build();
+	}
+
+	@Override
+	public PromotedReleaseBundle promoteReleaseBundle(String name, String version, boolean async,
+			PromoteReleaseBundleOperation operation, String project, String repositoryKey,
+			ReleaseBundlePromotion releaseBundlePromotion) {
+		Assert.hasText(name, "'name' must not be empty");
+		Assert.hasText(name, "'version' must not be empty");
+		return this.restClient.post()
+			.uri((builder) -> promoteReleaseBundleUrl(builder, name, version, async, operation, project, repositoryKey))
+			.body(releaseBundlePromotion)
+			.retrieve()
+			.body(PromotedReleaseBundle.class);
+	}
+
+	private URI promoteReleaseBundleUrl(UriBuilder builder, String name, String version, boolean async,
+			PromoteReleaseBundleOperation operation, String project, String repositoryKey) {
+		builder = builder.pathSegment("lifecycle", "api", "v2", "promotion", "records", name, version);
+		if (!async) {
+			builder = builder.queryParam("async", false);
+		}
+		if (operation != null && operation != PromoteReleaseBundleOperation.COPY) {
+			builder = builder.queryParam("operation", operation.toString().toLowerCase(Locale.ROOT));
+		}
+		if (StringUtils.hasText(project)) {
+			builder = builder.queryParam("project", project);
+		}
+		if (StringUtils.hasText(repositoryKey)) {
+			builder = builder.queryParam("repository_key", repositoryKey);
 		}
 		return builder.build();
 	}

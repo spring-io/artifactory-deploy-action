@@ -27,8 +27,10 @@ import java.util.Set;
 import io.spring.artifactory.deploy.artifactory.payload.BuildModule;
 import io.spring.artifactory.deploy.artifactory.payload.CreatedReleaseBundle;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
+import io.spring.artifactory.deploy.artifactory.payload.PromotedReleaseBundle;
 import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion;
 import io.spring.artifactory.deploy.artifactory.payload.Vcs;
 
 import org.springframework.util.Assert;
@@ -126,6 +128,22 @@ public interface Artifactory {
 			boolean isRemoteDeleteByDistribution);
 
 	/**
+	 * Promote a specific Release Bundle v2 version.
+	 * @param name the release bundle name
+	 * @param version the release bundle version
+	 * @param async whether to create the bundle asynchronously
+	 * @param operation the operation to perform
+	 * @param project the project key used to determine the Release Bundles repository
+	 * @param repositoryKey the Release Bundles repository identifier that identifies
+	 * where a Release Bundle version resides
+	 * @param releaseBundlePromotion promotion details
+	 * @return details of the promoted bundle
+	 */
+	PromotedReleaseBundle promoteReleaseBundle(String name, String version, boolean async,
+			PromoteReleaseBundleOperation operation, String project, String repositoryKey,
+			ReleaseBundlePromotion releaseBundlePromotion);
+
+	/**
 	 * A build run.
 	 *
 	 * @param number the number of the build
@@ -172,6 +190,23 @@ public interface Artifactory {
 		 * Delete all builds.
 		 */
 		ALL_BUILDS
+
+	}
+
+	/**
+	 * Promote release bundle operations.
+	 */
+	enum PromoteReleaseBundleOperation {
+
+		/**
+		 * Copy.
+		 */
+		COPY,
+
+		/**
+		 * Move.
+		 */
+		MOVE
 
 	}
 

@@ -1,0 +1,14 @@
+{
+	"repository_key": "release-bundles-v2",
+	"release_bundle_name": "rasuli-test",
+	"release_bundle_version": "2",
+	"environment": "env",
+	"included_repository_keys": ["a", "b"],
+	"excluded_repository_keys": ["c", "d"],
+	"artifact_additional_properties": {
+		"foo": "bar"
+	},
+	"created": "2025-01-08T18:40:51.638Z",
+	"created_millis": 123,
+	"source_environment": "se"
+}

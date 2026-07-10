@@ -1,0 +1,22 @@
+{
+	"stage": "st",
+	"includedRepositoryKeys": [
+		"a",
+		"b"
+	],
+	"excludedRepositoryKeys": [
+		"c",
+		"d"
+	],
+	"includedSourcePaths": [
+		"e"
+	],
+	"excludedSourcePaths": [
+		"f"
+	],
+	"overwriteStrategy": "LATEST",
+	"artifactAdditionalProperties": {
+		"foo": "bar"
+	},
+	"promotionAuthorizationType": "APP_TRUST_AUTHORIZED_PROMOTION"
+}
