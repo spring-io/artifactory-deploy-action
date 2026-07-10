@@ -232,12 +232,12 @@ public class HttpArtifactory implements Artifactory {
 	}
 
 	@Override
-	public void promoteBuild(String buildName, String buildNumber, Promotion promotion) {
+	public void promoteBuild(String buildName, String buildNumber, String project, Promotion promotion) {
 		Assert.hasText(buildName, "'buildName' must not be empty");
 		Assert.hasText(buildNumber, "'buildNumber' must not be empty");
 		Assert.notNull(promotion, "'promotion' must not be null");
 		this.restClient.post()
-			.uri((builder) -> promoteBuildUri(builder, buildName, buildNumber))
+			.uri((builder) -> promoteBuildUri(builder, buildName, buildNumber, project))
 			.contentType(MediaType.APPLICATION_JSON)
 			.body(promotion)
 			.retrieve()
@@ -245,24 +245,32 @@ public class HttpArtifactory implements Artifactory {
 
 	}
 
-	private URI promoteBuildUri(UriBuilder builder, String buildName, String buildNumber) {
-		return builder.pathSegment("api", "build", "promote", buildName, buildNumber).build();
+	private URI promoteBuildUri(UriBuilder builder, String buildName, String buildNumber, String project) {
+		builder = builder.pathSegment("api", "build", "promote", buildName, buildNumber);
+		if (StringUtils.hasText(project)) {
+			builder = builder.queryParam("project", project);
+		}
+		return builder.build();
 	}
 
 	@Override
-	public void deleteBuild(String buildName, BuildNumbers buildNumbers, Delete... delete) {
+	public void deleteBuild(String buildName, BuildNumbers buildNumbers, String project, Delete... delete) {
 		Assert.hasText(buildName, "'buildName' must not be empty");
 		this.restClient.delete()
-			.uri((builder) -> deleteBuildUri(builder, buildName, buildNumbers, Set.of(delete)))
+			.uri((builder) -> deleteBuildUri(builder, buildName, buildNumbers, project, Set.of(delete)))
 			.retrieve()
 			.toBodilessEntity();
 	}
 
-	private URI deleteBuildUri(UriBuilder builder, String buildName, BuildNumbers buildNumbers, Set<Delete> delete) {
+	private URI deleteBuildUri(UriBuilder builder, String buildName, BuildNumbers buildNumbers, String project,
+			Set<Delete> delete) {
 		builder = builder.pathSegment("api", "build", buildName);
 		if (buildNumbers != null && !buildNumbers.value().isEmpty()) {
 			builder = builder.queryParam("buildNumbers",
 					StringUtils.collectionToCommaDelimitedString(buildNumbers.value()));
+		}
+		if (StringUtils.hasText(project)) {
+			builder = builder.queryParam("project", project);
 		}
 		if (delete.contains(Delete.ARTIFACTS)) {
 			builder = builder.queryParam("artifacts", "1");

@@ -103,7 +103,8 @@ class ArtifactoryIntegrationTests {
 			.uri("/libs-test-local/com/example/module/2.0.0/module-2.0.0.jar")
 			.retrieve()
 			.body(String.class));
-		artifactory.promoteBuild("integration-test", "22", new Promotion("libs-release-local", "libs-test-local"));
+		artifactory.promoteBuild("integration-test", "22", null,
+				new Promotion("libs-release-local", "libs-test-local"));
 		assertThatExceptionOfType(HttpClientErrorException.class).isThrownBy(() -> container.getRestClient()
 			.get()
 			.uri("/libs-release-local/com/example/module/2.0.0/module-2.0.0.jar")

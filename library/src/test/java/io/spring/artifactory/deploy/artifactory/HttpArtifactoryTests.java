@@ -296,39 +296,39 @@ class HttpArtifactoryTests {
 
 	@Test
 	void promoteBuild() {
-		this.server.expect(requestTo("https://repo.example.com/api/build/promote/my-project/1"))
+		this.server.expect(requestTo("https://repo.example.com/api/build/promote/my-build/1"))
 			.andExpect(method(HttpMethod.POST))
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 			.andExpect(jsonContent(getResource("payload/promotion.json")))
 			.andRespond(withSuccess());
 		Promotion promotion = new Promotion("status", "comment", "user", STARTED, true, "from", "to", true, true, false,
 				Set.of("s1", "s2"));
-		this.artifactory.promoteBuild("my-project", "1", promotion);
+		this.artifactory.promoteBuild("my-build", "1", null, promotion);
 	}
 
 	@Test
 	void deleteBuildWhenSingleBuildNumber() {
-		this.server.expect(requestTo("https://repo.example.com/api/build/my-project?buildNumbers=1"))
+		this.server.expect(requestTo("https://repo.example.com/api/build/my-build?buildNumbers=1"))
 			.andExpect(method(HttpMethod.DELETE))
 			.andRespond(withSuccess());
-		this.artifactory.deleteBuild("my-project", "1");
+		this.artifactory.deleteBuild("my-build", "1", null);
 	}
 
 	@Test
 	void deleteBuildWhenHasMultipleBuildNumbers() {
-		this.server.expect(requestTo("https://repo.example.com/api/build/my-project?buildNumbers=1,2,3"))
+		this.server.expect(requestTo("https://repo.example.com/api/build/my-build?buildNumbers=1,2,3"))
 			.andExpect(method(HttpMethod.DELETE))
 			.andRespond(withSuccess());
-		this.artifactory.deleteBuild("my-project", BuildNumbers.of("1", "2", "3"));
+		this.artifactory.deleteBuild("my-build", BuildNumbers.of("1", "2", "3"), null);
 	}
 
 	@Test
 	void deleteBuildWhenHasDeleteOptions() {
 		this.server
-			.expect(requestTo("https://repo.example.com/api/build/my-project?buildNumbers=1&artifacts=1&deleteAll=1"))
+			.expect(requestTo("https://repo.example.com/api/build/my-build?buildNumbers=1&artifacts=1&deleteAll=1"))
 			.andExpect(method(HttpMethod.DELETE))
 			.andRespond(withSuccess());
-		this.artifactory.deleteBuild("my-project", "1", Delete.ARTIFACTS, Delete.ALL_BUILDS);
+		this.artifactory.deleteBuild("my-build", "1", null, Delete.ARTIFACTS, Delete.ALL_BUILDS);
 	}
 
 	@Test
@@ -367,14 +367,14 @@ class HttpArtifactoryTests {
 		Artifactory artifactory = new HttpArtifactory(Logger.console(true), builder,
 				URI.create("https://repo.example.com"), "alice", "secret", Duration.ofMillis(10));
 		MockRestServiceServer server = customizer.getServer();
-		server.expect(requestTo("https://repo.example.com/api/build/promote/my-project/1"))
+		server.expect(requestTo("https://repo.example.com/api/build/promote/my-build/1"))
 			.andExpect(method(HttpMethod.POST))
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 			.andExpect(jsonContent(getResource("payload/promotion.json")))
 			.andRespond(withSuccess());
 		Promotion promotion = new Promotion("status", "comment", "user", STARTED, true, "from", "to", true, true, false,
 				Set.of("s1", "s2"));
-		artifactory.promoteBuild("my-project", "1", promotion);
+		artifactory.promoteBuild("my-build", "1", null, promotion);
 	}
 
 	private RequestMatcher jsonContent(Resource expected) {

@@ -68,33 +68,36 @@ public interface Artifactory {
 	 * Promotes a build.
 	 * @param buildName the build name
 	 * @param buildNumber the build number
+	 * @param project the project
 	 * @param promotion the promotion to perform
 	 * @see <a href="https://docs.jfrog.com/integrations/reference/promoteBuild">JFrog API
 	 * documentation</a>
 	 */
-	void promoteBuild(String buildName, String buildNumber, Promotion promotion);
+	void promoteBuild(String buildName, String buildNumber, String project, Promotion promotion);
 
 	/**
 	 * Removes builds stored in Artifactory.
 	 * @param buildName the build name
 	 * @param buildNumber the build number to delete
+	 * @param project the project
 	 * @param delete any additional deletion operations
 	 * @see <a href="https://docs.jfrog.com/integrations/reference/deletebuilds">JFrog API
 	 * documentation</a>
 	 */
-	default void deleteBuild(String buildName, String buildNumber, Delete... delete) {
-		deleteBuild(buildName, BuildNumbers.of(buildNumber), delete);
+	default void deleteBuild(String buildName, String buildNumber, String project, Delete... delete) {
+		deleteBuild(buildName, BuildNumbers.of(buildNumber), project, delete);
 	}
 
 	/**
 	 * Removes builds stored in Artifactory.
 	 * @param buildName the build name
 	 * @param buildNumbers the build numbers to delete
+	 * @param project the project
 	 * @param delete any additional deletion operations
 	 * @see <a href="https://docs.jfrog.com/integrations/reference/deletebuilds">JFrog API
 	 * documentation</a>
 	 */
-	void deleteBuild(String buildName, BuildNumbers buildNumbers, Delete... delete);
+	void deleteBuild(String buildName, BuildNumbers buildNumbers, String project, Delete... delete);
 
 	/**
 	 * Create a release bundle.
