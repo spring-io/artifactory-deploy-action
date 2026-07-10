@@ -21,8 +21,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -42,10 +40,8 @@ import org.springframework.util.CollectionUtils;
  * @param scopes an array of dependency scopes
  * @author Phillip Webb
  */
-public record Promotion(String status, String comment, String ciUser,
-		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX",
-				timezone = "UTC") Instant timestamp,
-		Boolean dryRun, String sourceRepo, String targetRepo, Boolean copy, Boolean artifacts, Boolean dependencies,
+public record Promotion(String status, String comment, String ciUser, @JsonTimestamp Instant timestamp, Boolean dryRun,
+		String sourceRepo, String targetRepo, Boolean copy, Boolean artifacts, Boolean dependencies,
 		Set<String> scopes) {
 
 	/**

@@ -16,12 +16,25 @@
 
 package io.spring.artifactory.deploy.artifactory.payload;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import tools.jackson.databind.json.JsonMapper;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
 /**
+ * Dummy test appplication for JSON testing.
+ *
  * @author Moritz Halbritter
  */
 @SpringBootApplication
 class TestApplication {
+
+	@Bean
+	JsonMapper jsonMapper() {
+		return JsonMapper.builder()
+			.changeDefaultPropertyInclusion((inclusion) -> inclusion.withValueInclusion(Include.NON_EMPTY))
+			.build();
+	}
 
 }

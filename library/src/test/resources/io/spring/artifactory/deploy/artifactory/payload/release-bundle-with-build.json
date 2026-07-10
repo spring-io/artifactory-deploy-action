@@ -1,0 +1,15 @@
+{
+	"release_bundle_name": "my-bundle",
+	"release_bundle_version": "1.2.3",
+	"source": {
+		"source_type": "builds",
+		"builds": [
+			{
+				"build_name": "my-build",
+				"build_number": "2.3.4",
+				"build_repository": "spring-build-info"
+			}
+		]
+	},
+	"tag": "my-tag"
+}

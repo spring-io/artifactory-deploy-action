@@ -25,8 +25,10 @@ import java.util.List;
 import java.util.Set;
 
 import io.spring.artifactory.deploy.artifactory.payload.BuildModule;
+import io.spring.artifactory.deploy.artifactory.payload.CreatedReleaseBundle;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.Promotion;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle;
 import io.spring.artifactory.deploy.artifactory.payload.Vcs;
 
 import org.springframework.util.Assert;
@@ -95,6 +97,32 @@ public interface Artifactory {
 	void deleteBuild(String buildName, BuildNumbers buildNumbers, Delete... delete);
 
 	/**
+	 * Create a release bundle.
+	 * @param async whether to create the bundle asynchronously
+	 * @param failFast whether to fail fast on errors
+	 * @param project the project key used to determine the Release Bundles repository
+	 * @param repositoryKey the Release Bundles repository identifier that identifies
+	 * where a Release Bundle version resides
+	 * @param releaseBundle the release bundle to create
+	 * @return details of the created release bundle
+	 */
+	CreatedReleaseBundle createReleaseBundle(boolean async, boolean failFast, String project, String repositoryKey,
+			ReleaseBundle releaseBundle);
+
+	/**
+	 * Deletes a specific Release Bundle v2 version.
+	 * @param name the release bundle name
+	 * @param version the release bundle version
+	 * @param project the project key used to determine the Release Bundles repository
+	 * @param repositoryKey the Release Bundles repository identifier that identifies
+	 * where a Release Bundle version resides
+	 * @param async whether to create the bundle asynchronously
+	 * @param isRemoteDeleteByDistribution whether this is a remote delete by distribution
+	 */
+	void deleteReleaseBundle(String name, String version, String project, String repositoryKey, boolean async,
+			boolean isRemoteDeleteByDistribution);
+
+	/**
 	 * A build run.
 	 *
 	 * @param number the number of the build
@@ -113,6 +141,10 @@ public interface Artifactory {
 	 */
 	record BuildNumbers(Set<String> value) {
 
+		/**
+		 * Create a new {@link BuildNumbers} instance.
+		 * @param value the build numbers value
+		 */
 		public BuildNumbers {
 			Assert.notEmpty(value, "'value' must not be empty");
 		}

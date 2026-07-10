@@ -38,9 +38,12 @@ import io.spring.artifactory.deploy.artifactory.Artifactory.BuildRun;
 import io.spring.artifactory.deploy.artifactory.Artifactory.Delete;
 import io.spring.artifactory.deploy.artifactory.payload.BuildArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.BuildModule;
+import io.spring.artifactory.deploy.artifactory.payload.CreatedReleaseBundle;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableFileArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.Promotion;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.Source;
 import io.spring.artifactory.deploy.artifactory.payload.Vcs;
 import io.spring.artifactory.deploy.system.Logger;
 import org.assertj.core.api.Assertions;
@@ -67,6 +70,7 @@ import org.springframework.test.web.client.ResponseCreator;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.client.RestClient;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
@@ -325,6 +329,29 @@ class HttpArtifactoryTests {
 			.andExpect(method(HttpMethod.DELETE))
 			.andRespond(withSuccess());
 		this.artifactory.deleteBuild("my-project", "1", Delete.ARTIFACTS, Delete.ALL_BUILDS);
+	}
+
+	@Test
+	void createReleaseBundle() {
+		this.server.expect(requestTo(
+				"https://repo.example.com/lifecycle/api/v2/release_bundle?async=false&fail_fast=false&project=my-project"))
+			.andExpect(method(HttpMethod.POST))
+			.andExpect(jsonContent(getResource("payload/release-bundle-with-build.json")))
+			.andRespond(withSuccess(getResource("payload/created-release-bundle.json"), MediaType.APPLICATION_JSON));
+		Source.Builds source = Source.Builds.of(new Source.Build("my-build", "2.3.4", "spring-build-info", null));
+		ReleaseBundle releaseBundle = new ReleaseBundle("my-bundle", "1.2.3", null, source, "my-tag");
+		CreatedReleaseBundle bundle = this.artifactory.createReleaseBundle(false, false, "my-project", null,
+				releaseBundle);
+		assertThat(bundle.releaseBundleName()).isEqualTo("rasuli-test");
+	}
+
+	@Test
+	void deleteReleaseBundle() {
+		this.server.expect(requestTo(
+				"https://repo.example.com/lifecycle/api/v2/release_bundle/records/my-bundle/2?project=my-project&async=false&is_remote_delete_by_distribution=true"))
+			.andExpect(method(HttpMethod.DELETE))
+			.andRespond(withSuccess());
+		this.artifactory.deleteReleaseBundle("my-bundle", "2", "my-project", null, false, true);
 	}
 
 	@Test

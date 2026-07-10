@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import org.springframework.util.Assert;
 
 /**
@@ -40,10 +38,8 @@ import org.springframework.util.Assert;
  * @author Madhura Bhave
  * @author Andy Wilkinson
  */
-public record BuildInfo(
-		String name, String number, CiAgent agent, BuildAgent buildAgent, @JsonFormat(shape = JsonFormat.Shape.STRING,
-				pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC") Instant started,
-		String url, List<Vcs> vcs, List<BuildModule> modules) {
+public record BuildInfo(String name, String number, CiAgent agent, BuildAgent buildAgent,
+		@JsonTimestamp Instant started, String url, List<Vcs> vcs, List<BuildModule> modules) {
 
 	/**
 	 * Creates a new {@link BuildInfo} with default CI and build agents.
