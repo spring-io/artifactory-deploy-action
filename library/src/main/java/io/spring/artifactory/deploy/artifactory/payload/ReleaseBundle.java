@@ -27,6 +27,7 @@ import tools.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import tools.jackson.databind.annotation.JsonNaming;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A release bundle.
@@ -115,6 +116,48 @@ public record ReleaseBundle(String releaseBundleName, String releaseBundleVersio
 			public Build {
 				Assert.hasText(buildName, "'buildName' must not be empty");
 				Assert.hasText(buildNumber, "'buildNumber' must not be empty");
+			}
+
+			/**
+			 * Return an updated {@link Build} that uses the standard
+			 * {@code artifactory-build-info} build repository.
+			 * @return a new {@link Build} instance
+			 */
+			public Build withBuildInfoRepository() {
+				return withBuildInfoRepository(null);
+			}
+
+			/**
+			 * Return an updated {@link Build} that uses a project specific
+			 * {@code build-info} build repository.
+			 * @param project the project or {@code null} to use the default build-info
+			 * repository
+			 * @return a new {@link Build} instance
+			 */
+			public Build withBuildInfoRepository(String project) {
+				String buildRepository = "%s-build-info"
+					.formatted(StringUtils.hasText(project) ? project : "artifactory");
+				return new Build(buildName(), buildNumber(), buildRepository, includeDependencies());
+			}
+
+			/**
+			 * Return an updated {@link Build} with a new include dependencies value.
+			 * @param includeDependencies the new include dependencies value
+			 * @return a new {@link Build} instance
+			 */
+			public Build withIncludeDependencies(Boolean includeDependencies) {
+				return new Build(buildName(), buildNumber(), buildRepository(), includeDependencies);
+			}
+
+			/**
+			 * Factory method to create a new {@link Build} using the default build
+			 * repository.
+			 * @param buildName the build name
+			 * @param buildNumber the build number
+			 * @return a new Build instance
+			 */
+			public static Build of(String buildName, String buildNumber) {
+				return new Build(buildName, buildNumber, null, null).withBuildInfoRepository();
 			}
 
 		}

@@ -19,6 +19,7 @@ package io.spring.artifactory.deploy.artifactory.payload;
 import java.util.Collections;
 
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.Source;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.Source.Build;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -61,6 +62,35 @@ class ReleaseBundleTests {
 	void createWhenSourceIsNullThrowsException() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new ReleaseBundle("b", "v", null, null, null))
 			.withMessage("'source' must not be null");
+	}
+
+	@Test
+	void ofCreateBundleWithStandardBuildInfoRepository() {
+		assertThat(Build.of("a", "1")).isEqualTo(new Build("a", "1", "artifactory-build-info", null));
+	}
+
+	@Test
+	void withBuildInfoRepositoryUsesArtifactoryBuildInfoRepository() {
+		assertThat(new Build("a", "1", null, null).withBuildInfoRepository())
+			.isEqualTo(new Build("a", "1", "artifactory-build-info", null));
+	}
+
+	@Test
+	void withBuildInfoRepositoryWhenProjectIsNullUsesArtifactoryBuildInfoRepository() {
+		assertThat(new Build("a", "1", null, null).withBuildInfoRepository(null))
+			.isEqualTo(new Build("a", "1", "artifactory-build-info", null));
+	}
+
+	@Test
+	void withBuildInfoRepositoryWhenProjectIsNotNullUsesProjectBuildInfoRepository() {
+		assertThat(new Build("a", "1", null, null).withBuildInfoRepository("spring"))
+			.isEqualTo(new Build("a", "1", "spring-build-info", null));
+	}
+
+	@Test
+	void withIncludeDependenciesUpdatesIncludeDependencies() {
+		assertThat(Build.of("a", "1").withIncludeDependencies(true))
+			.isEqualTo(new Build("a", "1", "artifactory-build-info", true));
 	}
 
 	@Test
