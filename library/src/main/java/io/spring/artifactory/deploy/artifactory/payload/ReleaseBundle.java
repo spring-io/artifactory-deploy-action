@@ -41,7 +41,8 @@ import org.springframework.util.Assert;
  */
 @JsonNaming(SnakeCaseStrategy.class)
 public record ReleaseBundle(String releaseBundleName, String releaseBundleVersion, Boolean skipDockerManifestResolution,
-		Source source, String tag) {
+		@JsonTypeInfo(use = Id.NAME, include = As.EXTERNAL_PROPERTY, property = "source_type") Source source,
+		String tag) {
 
 	/**
 	 * Create a new {@link ReleaseBundle} instance.
@@ -62,7 +63,6 @@ public record ReleaseBundle(String releaseBundleName, String releaseBundleVersio
 	 * Sources that can be used to create a release bundle.
 	 */
 	@JsonNaming(SnakeCaseStrategy.class)
-	@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "source_type")
 	@JsonSubTypes(@JsonSubTypes.Type(value = Builds.class, name = "builds"))
 	public sealed interface Source {
 

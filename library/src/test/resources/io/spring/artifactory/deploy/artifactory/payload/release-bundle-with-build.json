@@ -1,8 +1,8 @@
 {
 	"release_bundle_name": "my-bundle",
 	"release_bundle_version": "1.2.3",
+	"source_type": "builds",
 	"source": {
-		"source_type": "builds",
 		"builds": [
 			{
 				"build_name": "my-build",
