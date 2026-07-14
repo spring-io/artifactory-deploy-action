@@ -333,7 +333,7 @@ public class HttpArtifactory implements Artifactory {
 			builder = builder.queryParam("project", project);
 		}
 		if (StringUtils.hasText(repositoryKey)) {
-			builder = builder.queryParam("repository_key", project);
+			builder = builder.queryParam("repository_key", repositoryKey);
 		}
 		if (!async) {
 			builder = builder.queryParam("async", false);
