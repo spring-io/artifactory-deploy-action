@@ -1,0 +1,15 @@
+{
+	"release_bundle_name": "my-bundle",
+	"release_bundle_version": "1.2.3",
+	"source_type": "release_bundles",
+	"source": {
+		"release_bundles": [
+			{
+				"release_bundle_name": "my-other-bundle",
+				"release_bundle_version": "3.4.5",
+				"project_key": "my-project"
+			}
+		]
+	},
+	"tag": "my-tag"
+}

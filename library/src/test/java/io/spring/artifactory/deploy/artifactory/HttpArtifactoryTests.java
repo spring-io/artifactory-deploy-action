@@ -44,7 +44,8 @@ import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.DeployableFileArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle;
-import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.Source;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.BuildSource;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.BuildsSource;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion.OverwriteStrategy;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion.PromotionAuthorizationType;
@@ -342,7 +343,7 @@ class HttpArtifactoryTests {
 			.andExpect(method(HttpMethod.POST))
 			.andExpect(jsonContent(getResource("payload/release-bundle-with-build.json")))
 			.andRespond(withSuccess(getResource("payload/created-release-bundle.json"), MediaType.APPLICATION_JSON));
-		Source.Builds source = Source.Builds.of(new Source.Build("my-build", "2.3.4", "spring-build-info", null));
+		BuildsSource source = BuildsSource.of(new BuildSource("my-build", "2.3.4", "spring-build-info", null));
 		ReleaseBundle releaseBundle = new ReleaseBundle("my-bundle", "1.2.3", null, source, "my-tag");
 		CreatedReleaseBundle bundle = this.artifactory.createReleaseBundle(false, false, "my-project", null,
 				releaseBundle);

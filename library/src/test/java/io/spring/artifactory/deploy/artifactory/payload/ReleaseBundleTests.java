@@ -18,8 +18,10 @@ package io.spring.artifactory.deploy.artifactory.payload;
 
 import java.util.Collections;
 
-import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.Source;
-import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.Source.Build;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.BuildSource;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.BuildsSource;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.ReleaseBundleSource;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.ReleaseBundlesSource;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -40,8 +42,8 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 @ActiveProfiles("test")
 class ReleaseBundleTests {
 
-	private static final Source.Builds BUILDS_SOURCE = Source.Builds
-		.of(new Source.Build("my-build", "2.3.4", "spring-build-info", null));
+	private static final BuildsSource BUILDS_SOURCE = BuildsSource
+		.of(new BuildSource("my-build", "2.3.4", "spring-build-info", null));
 
 	@Autowired
 	private JacksonTester<ReleaseBundle> json;
@@ -66,69 +68,112 @@ class ReleaseBundleTests {
 
 	@Test
 	void ofCreateBundleWithStandardBuildInfoRepository() {
-		assertThat(Build.of("a", "1")).isEqualTo(new Build("a", "1", "artifactory-build-info", null));
+		assertThat(BuildSource.of("a", "1")).isEqualTo(new BuildSource("a", "1", "artifactory-build-info", null));
 	}
 
 	@Test
 	void withBuildInfoRepositoryUsesArtifactoryBuildInfoRepository() {
-		assertThat(new Build("a", "1", null, null).withBuildInfoRepository())
-			.isEqualTo(new Build("a", "1", "artifactory-build-info", null));
+		assertThat(new BuildSource("a", "1", null, null).withBuildInfoRepository())
+			.isEqualTo(new BuildSource("a", "1", "artifactory-build-info", null));
 	}
 
 	@Test
 	void withBuildInfoRepositoryWhenProjectIsNullUsesArtifactoryBuildInfoRepository() {
-		assertThat(new Build("a", "1", null, null).withBuildInfoRepository(null))
-			.isEqualTo(new Build("a", "1", "artifactory-build-info", null));
+		assertThat(new BuildSource("a", "1", null, null).withBuildInfoRepository(null))
+			.isEqualTo(new BuildSource("a", "1", "artifactory-build-info", null));
 	}
 
 	@Test
 	void withBuildInfoRepositoryWhenProjectIsNotNullUsesProjectBuildInfoRepository() {
-		assertThat(new Build("a", "1", null, null).withBuildInfoRepository("spring"))
-			.isEqualTo(new Build("a", "1", "spring-build-info", null));
+		assertThat(new BuildSource("a", "1", null, null).withBuildInfoRepository("spring"))
+			.isEqualTo(new BuildSource("a", "1", "spring-build-info", null));
 	}
 
 	@Test
 	void withIncludeDependenciesUpdatesIncludeDependencies() {
-		assertThat(Build.of("a", "1").withIncludeDependencies(true))
-			.isEqualTo(new Build("a", "1", "artifactory-build-info", true));
+		assertThat(BuildSource.of("a", "1").withIncludeDependencies(true))
+			.isEqualTo(new BuildSource("a", "1", "artifactory-build-info", true));
 	}
 
 	@Test
-	void writeSerializesJson() throws Exception {
+	void writeSerializesJsonWhenHasBuildsSource() throws Exception {
 		ReleaseBundle releaseBundle = new ReleaseBundle("my-bundle", "1.2.3", null, BUILDS_SOURCE, "my-tag");
 		assertThat(this.json.write(releaseBundle)).isEqualToJson("release-bundle-with-build.json");
 	}
 
+	@Test
+	void writeSerializesJsonWhenHasReleaseBundlesSource() throws Exception {
+		ReleaseBundlesSource releaseBundleSource = ReleaseBundlesSource
+			.of(ReleaseBundleSource.of("my-other-bundle", "3.4.5").withProjectKey("my-project"));
+		ReleaseBundle releaseBundle = new ReleaseBundle("my-bundle", "1.2.3", null, releaseBundleSource, "my-tag");
+		System.out.println(this.json.write(releaseBundle).getJson());
+		assertThat(this.json.write(releaseBundle)).isEqualToJson("release-bundle-with-release-bundle.json");
+	}
+
 	@Nested
-	class BuildsTests {
+	class BuildsSourceTests {
 
 		@Test
 		void createWhenBuildsIsNullThrowsException() {
-			assertThatIllegalArgumentException().isThrownBy(() -> new Source.Builds(null))
+			assertThatIllegalArgumentException().isThrownBy(() -> new BuildsSource(null))
 				.withMessage("'builds' must not be empty");
 		}
 
 		@Test
 		void createWhenBuildsIsEmptyThrowsException() {
-			assertThatIllegalArgumentException().isThrownBy(() -> new Source.Builds(Collections.emptyList()))
+			assertThatIllegalArgumentException().isThrownBy(() -> new BuildsSource(Collections.emptyList()))
 				.withMessage("'builds' must not be empty");
 		}
 
 	}
 
 	@Nested
-	class BuildTests {
+	class BuildSourceTests {
 
 		@Test
 		void createWhenBuildNameIsNullThrowsException() {
-			assertThatIllegalArgumentException().isThrownBy(() -> new Source.Build(null, "1", null, null))
+			assertThatIllegalArgumentException().isThrownBy(() -> new BuildSource(null, "1", null, null))
 				.withMessage("'buildName' must not be empty");
 		}
 
 		@Test
 		void createWhenBuildNumberIsNullThrowsException() {
-			assertThatIllegalArgumentException().isThrownBy(() -> new Source.Build("n", null, null, null))
+			assertThatIllegalArgumentException().isThrownBy(() -> new BuildSource("n", null, null, null))
 				.withMessage("'buildNumber' must not be empty");
+		}
+
+	}
+
+	@Nested
+	class ReleaseBundlesSourceTests {
+
+		@Test
+		void createWhenReleaseBundlesIsNullThrowsException() {
+			assertThatIllegalArgumentException().isThrownBy(() -> new ReleaseBundlesSource(null))
+				.withMessage("'releaseBundles' must not be empty");
+		}
+
+		@Test
+		void createWhenReleaseBundlesIsEmptyThrowsException() {
+			assertThatIllegalArgumentException().isThrownBy(() -> new ReleaseBundlesSource(Collections.emptyList()))
+				.withMessage("'releaseBundles' must not be empty");
+		}
+
+	}
+
+	@Nested
+	class ReleaseBundleSourceTests {
+
+		@Test
+		void createWhenReleaseBundleNameIsNullThrowsException() {
+			assertThatIllegalArgumentException().isThrownBy(() -> new ReleaseBundleSource(null, "1.2.3", null, null))
+				.withMessage("'releaseBundleName' must not be empty");
+		}
+
+		@Test
+		void createWhenReleaseBundleVersionIsNullThrowsException() {
+			assertThatIllegalArgumentException().isThrownBy(() -> new ReleaseBundleSource("name", null, null, null))
+				.withMessage("'releaseBundleVersion' must not be empty");
 		}
 
 	}
