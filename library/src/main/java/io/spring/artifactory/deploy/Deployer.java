@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -140,9 +142,10 @@ public class Deployer {
 		batchedArtifacts = signArtifactsIfNecessary(batchedArtifacts, buildProperties, signing);
 		int size = batchedArtifacts.values().stream().mapToInt(List::size).sum();
 		Assert.state(size > 0, "No artifacts found to deploy");
+		ProgressTracker progressTracker = new ProgressTracker(this.logger, size);
 		this.logger.log("Deploying {} artifacts to {} in {} as build {} of {} using {} thread(s)", size, repository,
 				this.server, buildNumber, buildName, this.threads);
-		deployArtifacts(batchedArtifacts, repository);
+		deployArtifacts(batchedArtifacts, repository, progressTracker);
 		addBuildRun(buildNumber, buildName, buildUri, project, revision, started, batchedArtifacts);
 		this.logger.debug("Done");
 	}
@@ -233,11 +236,12 @@ public class Deployer {
 		}
 	}
 
-	private void deployArtifacts(MultiValueMap<Category, DeployableArtifact> batchedArtifacts, String repository) {
+	private void deployArtifacts(MultiValueMap<Category, DeployableArtifact> batchedArtifacts, String repository,
+			ProgressTracker progressTracker) {
 		ExecutorService executor = Executors.newFixedThreadPool(this.threads,
 				new CustomizableThreadFactory("deployer-"));
 		Function<DeployableArtifact, CompletableFuture<?>> deployer = (deployableArtifact) -> getArtifactDeployer(
-				deployableArtifact, executor, repository);
+				deployableArtifact, progressTracker, executor, repository);
 		try {
 			batchedArtifacts.forEach((category, artifacts) -> deploy(category, artifacts, deployer));
 		}
@@ -264,15 +268,18 @@ public class Deployer {
 		}
 	}
 
-	private CompletableFuture<?> getArtifactDeployer(DeployableArtifact deployableArtifact, Executor executor,
-			String repository) {
-		return CompletableFuture.runAsync(() -> deployArtifact(deployableArtifact, repository), executor);
+	private CompletableFuture<?> getArtifactDeployer(DeployableArtifact deployableArtifact,
+			ProgressTracker progressTracker, Executor executor, String repository) {
+		return CompletableFuture.runAsync(() -> deployArtifact(deployableArtifact, repository, progressTracker),
+				executor);
 	}
 
-	private void deployArtifact(DeployableArtifact deployableArtifact, String repository) {
-		this.logger.log("Deploying {} {} ({}/{})", deployableArtifact.getPath(), deployableArtifact.getProperties(),
+	private void deployArtifact(DeployableArtifact deployableArtifact, String repository,
+			ProgressTracker progressTracker) {
+		this.logger.debug("Deploying {} {} ({}/{})", deployableArtifact.getPath(), deployableArtifact.getProperties(),
 				deployableArtifact.getChecksums().getSha1(), deployableArtifact.getChecksums().getMd5());
 		this.artifactory.deploy(repository, deployableArtifact);
+		progressTracker.artifactDeployed();
 	}
 
 	private Predicate<File> getMetadataFilter() {
@@ -349,6 +356,37 @@ public class Deployer {
 	 * @param keyId optional key ID to select a subkey
 	 */
 	public record Signing(String key, String passphrase, String keyId) {
+	}
+
+	private static final class ProgressTracker {
+
+		private static final int PROGRESS_INTERVAL = 50;
+
+		private final AtomicInteger progress = new AtomicInteger();
+
+		private final Logger logger;
+
+		private volatile long start;
+
+		private final int total;
+
+		private ProgressTracker(Logger logger, int total) {
+			this.logger = logger;
+			this.total = total;
+			this.start = System.currentTimeMillis();
+		}
+
+		private void artifactDeployed() {
+			int current = this.progress.incrementAndGet();
+			long elapsed = Duration.ofMillis(System.currentTimeMillis() - this.start).getSeconds();
+			if (current == this.total) {
+				this.logger.log("Deployed all {} artifacts in {}s", this.total, elapsed);
+			}
+			else if (current % PROGRESS_INTERVAL == 0) {
+				this.logger.log("Deployed {} of {} artifacts in {}s", current, this.total, elapsed);
+			}
+		}
+
 	}
 
 }
