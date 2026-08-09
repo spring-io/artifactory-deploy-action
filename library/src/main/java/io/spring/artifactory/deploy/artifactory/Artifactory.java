@@ -111,8 +111,24 @@ public interface Artifactory {
 	 * @param releaseBundle the release bundle to create
 	 * @return details of the created release bundle
 	 */
+	default CreatedReleaseBundle createReleaseBundle(boolean async, boolean failFast, String project,
+			String repositoryKey, ReleaseBundle releaseBundle) {
+		return createReleaseBundle(async, failFast, project, repositoryKey, null, releaseBundle);
+	}
+
+	/**
+	 * Create a release bundle.
+	 * @param async whether to create the bundle asynchronously
+	 * @param failFast whether to fail fast on errors
+	 * @param project the project key used to determine the Release Bundles repository
+	 * @param repositoryKey the Release Bundles repository identifier that identifies
+	 * where a Release Bundle version resides
+	 * @param signingKeyName the signing key name or {@code null}
+	 * @param releaseBundle the release bundle to create
+	 * @return details of the created release bundle
+	 */
 	CreatedReleaseBundle createReleaseBundle(boolean async, boolean failFast, String project, String repositoryKey,
-			ReleaseBundle releaseBundle);
+			String signingKeyName, ReleaseBundle releaseBundle);
 
 	/**
 	 * Deletes a specific Release Bundle v2 version.

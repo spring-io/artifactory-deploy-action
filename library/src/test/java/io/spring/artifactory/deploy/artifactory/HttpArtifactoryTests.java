@@ -351,6 +351,21 @@ class HttpArtifactoryTests {
 	}
 
 	@Test
+	void createReleaseBundleWithSigningKey() {
+		this.server.expect(requestTo(
+				"https://repo.example.com/lifecycle/api/v2/release_bundle?async=false&fail_fast=false&project=my-project"))
+			.andExpect(method(HttpMethod.POST))
+			.andExpect(header("X-JFrog-Signing-Key-Name", "my-key"))
+			.andExpect(jsonContent(getResource("payload/release-bundle-with-build.json")))
+			.andRespond(withSuccess(getResource("payload/created-release-bundle.json"), MediaType.APPLICATION_JSON));
+		BuildsSource source = BuildsSource.of(new BuildSource("my-build", "2.3.4", "spring-build-info", null));
+		ReleaseBundle releaseBundle = new ReleaseBundle("my-bundle", "1.2.3", null, source, "my-tag");
+		CreatedReleaseBundle bundle = this.artifactory.createReleaseBundle(false, false, "my-project", null, "my-key",
+				releaseBundle);
+		assertThat(bundle.releaseBundleName()).isEqualTo("rasuli-test");
+	}
+
+	@Test
 	void deleteReleaseBundle() {
 		this.server.expect(requestTo(
 				"https://repo.example.com/lifecycle/api/v2/release_bundle/records/my-bundle/2?project=my-project&async=false&is_remote_delete_by_distribution=true"))

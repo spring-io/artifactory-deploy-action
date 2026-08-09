@@ -131,7 +131,7 @@ public class HttpArtifactory implements Artifactory {
 		this.restClient.put()
 			.uri((builder) -> deployUri(builder, repository, artifact))
 			.contentType(MediaType.APPLICATION_OCTET_STREAM)
-			.headers((headers) -> headers(headers, artifact))
+			.headers((headers) -> deployHeaders(headers, artifact))
 			.header("X-Checksum-Deploy", "true")
 			.retrieve()
 			.toBodilessEntity();
@@ -145,7 +145,7 @@ public class HttpArtifactory implements Artifactory {
 				this.restClient.put()
 					.uri((builder) -> deployUri(builder, repository, artifact))
 					.contentType(MediaType.APPLICATION_OCTET_STREAM)
-					.headers((headers) -> headers(headers, artifact))
+					.headers((headers) -> deployHeaders(headers, artifact))
 					.contentLength(artifact.getSize())
 					.body(artifact.getContent())
 					.retrieve()
@@ -193,7 +193,7 @@ public class HttpArtifactory implements Artifactory {
 			.build();
 	}
 
-	private void headers(HttpHeaders headers, DeployableArtifact artifact) {
+	private void deployHeaders(HttpHeaders headers, DeployableArtifact artifact) {
 		Checksums checksums = artifact.getChecksums();
 		headers.add("X-Checksum-Sha1", checksums.getSha1());
 		headers.add("X-Checksum-Md5", checksums.getMd5());
@@ -286,11 +286,12 @@ public class HttpArtifactory implements Artifactory {
 
 	@Override
 	public CreatedReleaseBundle createReleaseBundle(boolean async, boolean failFast, String project,
-			String repositoryKey, ReleaseBundle releaseBundle) {
+			String repositoryKey, String signingKeyName, ReleaseBundle releaseBundle) {
 		Assert.notNull(releaseBundle, "'releaseBundle' must not be null");
 		return this.restClient.post()
 			.uri((builder) -> createReleaseBundleUri(builder, async, failFast, project, repositoryKey))
 			.contentType(MediaType.APPLICATION_JSON)
+			.headers((headers) -> releaseBundleHeaders(headers, signingKeyName))
 			.body(releaseBundle)
 			.retrieve()
 			.body(CreatedReleaseBundle.class);
@@ -312,6 +313,12 @@ public class HttpArtifactory implements Artifactory {
 			builder = builder.queryParam("repository_key", project);
 		}
 		return builder.build();
+	}
+
+	private void releaseBundleHeaders(HttpHeaders headers, String signingKeyName) {
+		if (StringUtils.hasLength(signingKeyName)) {
+			headers.add("X-JFrog-Signing-Key-Name", signingKeyName);
+		}
 	}
 
 	@Override
