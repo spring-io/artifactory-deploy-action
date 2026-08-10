@@ -1,22 +1,22 @@
 {
 	"stage": "st",
-	"includedRepositoryKeys": [
+	"included_repository_keys": [
 		"a",
 		"b"
 	],
-	"excludedRepositoryKeys": [
+	"excluded_repository_keys": [
 		"c",
 		"d"
 	],
-	"includedSourcePaths": [
+	"included_source_paths": [
 		"e"
 	],
-	"excludedSourcePaths": [
+	"excluded_source_paths": [
 		"f"
 	],
-	"overwriteStrategy": "LATEST",
-	"artifactAdditionalProperties": {
+	"overwrite_strategy": "LATEST",
+	"artifact_additional_properties": {
 		"foo": "bar"
 	},
-	"promotionAuthorizationType": "APP_TRUST_AUTHORIZED_PROMOTION"
+	"promotion_authorization_type": "APP_TRUST_AUTHORIZED_PROMOTION"
 }
