@@ -17,7 +17,6 @@
 package io.spring.artifactory.deploy.artifactory.payload;
 
 import java.util.List;
-import java.util.Map;
 
 import tools.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import tools.jackson.databind.annotation.JsonNaming;
@@ -33,14 +32,14 @@ import tools.jackson.databind.annotation.JsonNaming;
  * @param excludedSourcePaths specific source paths to exclude from the promotion
  * @param overwriteStrategy the strategy for overwriting artifacts when a promotion would
  * overwrite a file that is not part of the release bundle
- * @param artifactAdditionalProperties key-value pairs that define properties to add to
- * each promoted artifact on top of any existing properties
+ * @param artifactAdditionalProperties properties to add to each promoted artifact on top
+ * of any existing properties
  * @param promotionAuthorizationType type of promotion authorization
  */
 @JsonNaming(SnakeCaseStrategy.class)
 public record ReleaseBundlePromotion(String stage, List<String> includedRepositoryKeys,
 		List<String> excludedRepositoryKeys, List<String> includedSourcePaths, List<String> excludedSourcePaths,
-		OverwriteStrategy overwriteStrategy, Map<String, String> artifactAdditionalProperties,
+		OverwriteStrategy overwriteStrategy, List<ArtifactAdditionalProperty> artifactAdditionalProperties,
 		PromotionAuthorizationType promotionAuthorizationType) {
 
 	/**

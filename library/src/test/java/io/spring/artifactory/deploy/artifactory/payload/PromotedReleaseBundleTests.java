@@ -16,6 +16,8 @@
 
 package io.spring.artifactory.deploy.artifactory.payload;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,8 @@ class PromotedReleaseBundleTests {
 			assertThat(promotedReleaseBundle.created()).isNotNull();
 			assertThat(promotedReleaseBundle.createdMillis()).isEqualTo(123);
 			assertThat(promotedReleaseBundle.sourceEnvironment()).isEqualTo("se");
+			assertThat(promotedReleaseBundle.artifactAdditionalProperties())
+				.containsExactly(new ArtifactAdditionalProperty("some-property", List.of("value-1", "value-2")));
 		});
 	}
 

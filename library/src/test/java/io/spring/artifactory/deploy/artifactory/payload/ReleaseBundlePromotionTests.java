@@ -17,7 +17,6 @@
 package io.spring.artifactory.deploy.artifactory.payload;
 
 import java.util.List;
-import java.util.Map;
 
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion.OverwriteStrategy;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion.PromotionAuthorizationType;
@@ -45,7 +44,8 @@ class ReleaseBundlePromotionTests {
 	@Test
 	void writeSerializesJson() throws Exception {
 		ReleaseBundlePromotion promotion = new ReleaseBundlePromotion("st", List.of("a", "b"), List.of("c", "d"),
-				List.of("e"), List.of("f"), OverwriteStrategy.LATEST, Map.of("foo", "bar"),
+				List.of("e"), List.of("f"), OverwriteStrategy.LATEST,
+				List.of(new ArtifactAdditionalProperty("some-property", List.of("value-1", "value-2"))),
 				PromotionAuthorizationType.APP_TRUST_AUTHORIZED_PROMOTION);
 		assertThat(this.json.write(promotion)).isEqualToJson("release-bundle-promotion.json");
 	}

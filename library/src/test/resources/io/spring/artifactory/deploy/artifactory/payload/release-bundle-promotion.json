@@ -15,8 +15,11 @@
 		"f"
 	],
 	"overwrite_strategy": "LATEST",
-	"artifact_additional_properties": {
-		"foo": "bar"
-	},
+	"artifact_additional_properties": [
+		{
+			"key": "some-property",
+			"values": ["value-1", "value-2"]
+		}
+	],
 	"promotion_authorization_type": "APP_TRUST_AUTHORIZED_PROMOTION"
 }

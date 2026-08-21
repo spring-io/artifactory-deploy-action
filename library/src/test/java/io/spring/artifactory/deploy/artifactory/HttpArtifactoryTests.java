@@ -37,6 +37,7 @@ import io.spring.artifactory.deploy.artifactory.Artifactory.BuildNumbers;
 import io.spring.artifactory.deploy.artifactory.Artifactory.BuildRun;
 import io.spring.artifactory.deploy.artifactory.Artifactory.Delete;
 import io.spring.artifactory.deploy.artifactory.Artifactory.PromoteReleaseBundleOperation;
+import io.spring.artifactory.deploy.artifactory.payload.ArtifactAdditionalProperty;
 import io.spring.artifactory.deploy.artifactory.payload.BuildArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.BuildModule;
 import io.spring.artifactory.deploy.artifactory.payload.CreatedReleaseBundle;
@@ -375,7 +376,7 @@ class HttpArtifactoryTests {
 	}
 
 	@Test
-	void promoteReleaseBunldeBuild() {
+	void promoteReleaseBundleBuild() {
 		this.server.expect(requestTo(
 				"https://repo.example.com/lifecycle/api/v2/promotion/records/my-build/1?async=false&operation=move&project=my-project&repository_key=my-repo"))
 			.andExpect(method(HttpMethod.POST))
@@ -383,7 +384,8 @@ class HttpArtifactoryTests {
 			.andExpect(jsonContent(getResource("payload/release-bundle-promotion.json")))
 			.andRespond(withSuccess(getResource("payload/promoted-release-bundle.json"), MediaType.APPLICATION_JSON));
 		ReleaseBundlePromotion promotion = new ReleaseBundlePromotion("st", List.of("a", "b"), List.of("c", "d"),
-				List.of("e"), List.of("f"), OverwriteStrategy.LATEST, Map.of("foo", "bar"),
+				List.of("e"), List.of("f"), OverwriteStrategy.LATEST,
+				List.of(new ArtifactAdditionalProperty("some-property", List.of("value-1", "value-2"))),
 				PromotionAuthorizationType.APP_TRUST_AUTHORIZED_PROMOTION);
 		this.artifactory.promoteReleaseBundle("my-build", "1", false, PromoteReleaseBundleOperation.MOVE, "my-project",
 				"my-repo", promotion);

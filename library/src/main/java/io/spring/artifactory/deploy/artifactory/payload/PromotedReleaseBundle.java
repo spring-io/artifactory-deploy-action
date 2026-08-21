@@ -18,7 +18,6 @@ package io.spring.artifactory.deploy.artifactory.payload;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 import tools.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import tools.jackson.databind.annotation.JsonNaming;
@@ -42,7 +41,7 @@ import tools.jackson.databind.annotation.JsonNaming;
 @JsonNaming(SnakeCaseStrategy.class)
 public record PromotedReleaseBundle(String repositoryKey, String releaseBundleName, String releaseBundleVersion,
 		String environment, List<String> includedRepositoryKeys, List<String> excludedRepositoryKeys,
-		Map<String, String> artifactAdditionalProperties, @JsonTimestamp Instant created, Long createdMillis,
-		String sourceEnvironment) {
+		List<ArtifactAdditionalProperty> artifactAdditionalProperties, @JsonTimestamp Instant created,
+		Long createdMillis, String sourceEnvironment) {
 
 }
