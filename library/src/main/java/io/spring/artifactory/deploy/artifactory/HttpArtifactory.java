@@ -31,6 +31,7 @@ import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.PromotedReleaseBundle;
 import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundleDistribution;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion;
 import io.spring.artifactory.deploy.system.Logger;
 import tools.jackson.databind.json.JsonMapper;
@@ -336,12 +337,7 @@ public class HttpArtifactory implements Artifactory {
 	private URI deleteReleaseBundleUri(UriBuilder builder, String name, String version, String project,
 			String repositoryKey, boolean async, boolean isRemoteDeleteByDistribution) {
 		builder = builder.pathSegment("lifecycle", "api", "v2", "release_bundle", "records", name, version);
-		if (StringUtils.hasText(project)) {
-			builder = builder.queryParam("project", project);
-		}
-		if (StringUtils.hasText(repositoryKey)) {
-			builder = builder.queryParam("repository_key", repositoryKey);
-		}
+		builder = projectAndRepositoryQueryParams(builder, project, repositoryKey);
 		if (!async) {
 			builder = builder.queryParam("async", false);
 		}
@@ -373,13 +369,37 @@ public class HttpArtifactory implements Artifactory {
 		if (operation != null && operation != PromoteReleaseBundleOperation.COPY) {
 			builder = builder.queryParam("operation", operation.toString().toLowerCase(Locale.ROOT));
 		}
+		builder = projectAndRepositoryQueryParams(builder, project, repositoryKey);
+		return builder.build();
+	}
+
+	@Override
+	public void distributeReleaseBundle(String name, String version, String project, String repositoryKey,
+			ReleaseBundleDistribution releaseBundleDistribution) {
+		Assert.hasText(name, "'name' must not be empty");
+		Assert.hasText(name, "'version' must not be empty");
+		this.restClient.post()
+			.uri((builder) -> distributeReleaseBundleUrl(builder, name, version, project, repositoryKey))
+			.body(releaseBundleDistribution)
+			.retrieve()
+			.toBodilessEntity();
+	}
+
+	private URI distributeReleaseBundleUrl(UriBuilder builder, String name, String version, String project,
+			String repositoryKey) {
+		builder = builder.pathSegment("lifecycle", "api", "v2", "distribution", "distribute", name, version);
+		builder = projectAndRepositoryQueryParams(builder, project, repositoryKey);
+		return builder.build();
+	}
+
+	private UriBuilder projectAndRepositoryQueryParams(UriBuilder builder, String project, String repositoryKey) {
 		if (StringUtils.hasText(project)) {
 			builder = builder.queryParam("project", project);
 		}
 		if (StringUtils.hasText(repositoryKey)) {
 			builder = builder.queryParam("repository_key", repositoryKey);
 		}
-		return builder.build();
+		return builder;
 	}
 
 }

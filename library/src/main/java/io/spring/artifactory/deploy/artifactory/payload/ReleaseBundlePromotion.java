@@ -22,7 +22,7 @@ import tools.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import tools.jackson.databind.annotation.JsonNaming;
 
 /**
- * Release bunlde promotion information.
+ * Release bundle promotion information.
  *
  * @author Phillip Webb
  * @param stage the name of the target environment/stage for the promotion

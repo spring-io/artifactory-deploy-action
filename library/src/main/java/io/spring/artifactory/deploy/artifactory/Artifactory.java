@@ -30,6 +30,7 @@ import io.spring.artifactory.deploy.artifactory.payload.DeployableArtifact;
 import io.spring.artifactory.deploy.artifactory.payload.PromotedReleaseBundle;
 import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundleDistribution;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion;
 import io.spring.artifactory.deploy.artifactory.payload.Vcs;
 
@@ -158,6 +159,18 @@ public interface Artifactory {
 	PromotedReleaseBundle promoteReleaseBundle(String name, String version, boolean async,
 			PromoteReleaseBundleOperation operation, String project, String repositoryKey,
 			ReleaseBundlePromotion releaseBundlePromotion);
+
+	/**
+	 * Distribute a specific Release Bundle v2 version.
+	 * @param name the release bundle name
+	 * @param version the release bundle version
+	 * @param project the project key used to determine the Release Bundles repository
+	 * @param repositoryKey the Release Bundles repository identifier that identifies
+	 * where a Release Bundle version resides
+	 * @param releaseBundleDistribution distribution details
+	 */
+	void distributeReleaseBundle(String name, String version, String project, String repositoryKey,
+			ReleaseBundleDistribution releaseBundleDistribution);
 
 	/**
 	 * A build run.

@@ -47,6 +47,10 @@ import io.spring.artifactory.deploy.artifactory.payload.Promotion;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.BuildSource;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundle.BuildsSource;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundleDistribution;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundleDistribution.DistributionRule;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundleDistribution.Mapping;
+import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundleDistribution.Modifications;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion.OverwriteStrategy;
 import io.spring.artifactory.deploy.artifactory.payload.ReleaseBundlePromotion.PromotionAuthorizationType;
@@ -376,7 +380,7 @@ class HttpArtifactoryTests {
 	}
 
 	@Test
-	void promoteReleaseBundleBuild() {
+	void promoteReleaseBundle() {
 		this.server.expect(requestTo(
 				"https://repo.example.com/lifecycle/api/v2/promotion/records/my-build/1?async=false&operation=move&project=my-project&repository_key=my-repo"))
 			.andExpect(method(HttpMethod.POST))
@@ -389,6 +393,20 @@ class HttpArtifactoryTests {
 				PromotionAuthorizationType.APP_TRUST_AUTHORIZED_PROMOTION);
 		this.artifactory.promoteReleaseBundle("my-build", "1", false, PromoteReleaseBundleOperation.MOVE, "my-project",
 				"my-repo", promotion);
+	}
+
+	@Test
+	void distributeReleaseBundle() {
+		this.server.expect(requestTo(
+				"https://repo.example.com/lifecycle/api/v2/distribution/distribute/my-build/1?project=my-project&repository_key=my-repo"))
+			.andExpect(method(HttpMethod.POST))
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andExpect(jsonContent(getResource("payload/release-bundle-distribution.json")))
+			.andRespond(withSuccess());
+		ReleaseBundleDistribution distribution = new ReleaseBundleDistribution(true,
+				List.of(new DistributionRule("site", "city", List.of("USA"))),
+				new Modifications(true, List.of(new Mapping("in", "out"))));
+		this.artifactory.distributeReleaseBundle("my-build", "1", "my-project", "my-repo", distribution);
 	}
 
 	@Test

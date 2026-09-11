@@ -1,0 +1,21 @@
+{
+	"auto_create_missing_repositories": true,
+	"distribution_rules": [
+		{
+			"site_name": "site",
+			"city_name": "city",
+			"country_codes": [
+				"USA"
+			]
+		}
+	],
+	"modifications": {
+		"default_path_mapping_by_last_promotion": true,
+		"mappings": [
+			{
+				"input": "in",
+				"output": "out"
+			}
+		]
+	}
+}
