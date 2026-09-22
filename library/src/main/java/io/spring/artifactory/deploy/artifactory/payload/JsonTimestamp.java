@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 
 /**
  * Format the JSON field as a UTC timestamp.
@@ -32,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @Target({ ElementType.FIELD, ElementType.ANNOTATION_TYPE, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotationsInside
-@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")
+@JsonFormat(shape = Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")
 @interface JsonTimestamp {
 
 }
