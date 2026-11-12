@@ -1,9 +1,5 @@
 name: Build
 description: 'Builds the project'
-inputs:
-  gradle-task:
-    description: 'Gradle task(s) to run'
-    default: 'build'
 outputs:
   version:
     description: 'Version that was built'
@@ -24,7 +20,7 @@ runs:
         cache-provider: basic
         cache-read-only: false
     - name: Build
-      run: ./gradlew ${{ inputs.gradle-task }}
+      run: ./gradlew -PdeploymentRepository=$(pwd)/maven-repo build publishAllPublicationsToDeploymentRepository
       shell: bash
     - id: read-version
       name: Read Version From gradle.properties

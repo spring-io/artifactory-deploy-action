@@ -3,13 +3,14 @@ on:
   push:
     tags:
       - v0.0.[0-9]+
-permissions:
-  contents: read
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
+permissions:
+  contents: read
 jobs:
-  build:
-    name: 'Build'
+  release:
+    name: 'Build and Publish Release'
+    if: ${{ github.repository == 'spring-io/artifactory-deploy-action' }}
     runs-on: 'ubuntu-latest'
     steps:
       - name: Check out code
@@ -17,20 +18,6 @@ jobs:
       - name: Build
         id: build
         uses: ./.github/actions/build
-    outputs:
-      version: ${{ steps.build.outputs.version }}
-  deploy:
-    name: 'Deploy to repo.spring.io'
-    runs-on: 'ubuntu-latest'
-    needs:
-      - build
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v7
-      - name: Build
-        uses: ./.github/actions/build
-        with:
-          gradle-task: '-PdeploymentRepository=$(pwd)/maven-repo publishAllPublicationsToDeploymentRepository'
       - name: Deploy to repo.spring.io
         uses: spring-io/artifactory-deploy-action@926d7f7cc810569395346bf3a4d91b380b3e355b # v0.0.4
         with:
@@ -42,17 +29,9 @@ jobs:
           folder: './maven-repo/'
           signing-key: ${{ secrets.GPG_PRIVATE_KEY }}
           signing-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-  create-github-release:
-    name: Create GitHub Release
-    needs:
-      - build
-    runs-on: 'ubuntu-latest'
-    steps:
-      - name: Check Out Code
-        uses: actions/checkout@v7
       - name: Create GitHub Release
         uses: ./.github/actions/create-github-release
         with:
-          milestone: ${{ needs.build.outputs.version }}
+          milestone: ${{ steps.build.outputs.version }}
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           assets: action/build/libs/action.jar

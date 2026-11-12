@@ -27,8 +27,6 @@ jobs:
         uses: actions/checkout@v7
       - name: Build
         uses: ./.github/actions/build
-        with:
-          gradle-task: '-PdeploymentRepository=$(pwd)/maven-repo publishAllPublicationsToDeploymentRepository'
       - name: Deploy to repo.spring.io
         uses: spring-io/artifactory-deploy-action@926d7f7cc810569395346bf3a4d91b380b3e355b # v0.0.4
         with:
