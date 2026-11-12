@@ -1,13 +1,12 @@
 name: Create GitHub Release
 description: 'Create the release on GitHub with a changelog'
 inputs:
+  assets:
+    description: 'Assets to attach to the release'
+    required: true
   milestone:
     description: 'Name of the GitHub milestone for which a release will be created'
     required: true
-  pre-release:
-    description: 'Whether the release is a pre-release (a milestone or release candidate)'
-    required: false
-    default: 'false'
   token:
     description: 'Token to use for authentication with GitHub'
     required: true
@@ -24,4 +23,7 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
-      run: gh release create ${{ format('v{0}', inputs.milestone) }} --notes-file changelog.md ${{ inputs.pre-release == 'true' && '--prerelease' || '' }}
+      run: |
+        tag=${{ format('v{0}', inputs.milestone) }} && \
+        gh release create $tag --notes-file changelog.md && \
+        gh release upload $tag ${{ inputs.assets }}

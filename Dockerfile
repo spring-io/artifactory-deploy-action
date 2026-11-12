@@ -1,10 +1,6 @@
-FROM gradle:9-jdk17 AS build
-COPY action /app/action/
-COPY library /app/library/
-COPY config /app/config/
-COPY build.gradle settings.gradle gradle.properties /app/
-RUN cd /app && gradle -Dorg.gradle.welcome=never --no-daemon bootJar
+FROM maniator/gh:v2.103 AS build
+RUN gh release download v0.0.6 --repo spring-io/artifactory-deploy-action --pattern 'action.jar'
 
 FROM ghcr.io/bell-sw/liberica-openjdk-debian:25
-COPY --from=build /app/action/build/libs/action.jar /opt/action/artifactory-deploy.jar
+COPY --from=build gh/action.jar /opt/action/artifactory-deploy.jar
 ENTRYPOINT ["java", "-jar", "/opt/action/artifactory-deploy.jar"]
