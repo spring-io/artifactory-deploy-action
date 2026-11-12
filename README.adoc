@@ -51,7 +51,7 @@ It makes use of the "builds" and "artifact properties" features of Artifactory t
 ----
 steps:
   - name: Deploy
-    uses: spring-io/artifactory-deploy-action@main
+    uses: spring-io/artifactory-deploy-action@v0.0.7
     with:
       uri: 'https://repo.example.com'
       username: ${{ secrets.ARTIFACTORY_USERNAME }}
@@ -72,7 +72,7 @@ This can be configured by passing through the value of the `ACTION_STEPS_DEBUG` 
 ----
 steps:
   - name: Deploy
-    uses: spring-io/artifactory-deploy-action@main
+    uses: spring-io/artifactory-deploy-action@v0.0.7
     env:
       ACTION_STEPS_DEBUG: ${{ secrets.ACTION_STEPS_DEBUG }}
 ----
