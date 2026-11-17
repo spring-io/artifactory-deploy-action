@@ -281,6 +281,7 @@ class DeployerTests {
 		createStructure(fooModule);
 		List<File> files = new ArrayList<>();
 		files.add(new File(fooModule.getParent().toFile(), "maven-metadata.xml"));
+		files.add(new File(fooModule.getParent().toFile(), "maven-metadata.xml.asc"));
 		files.add(new File(fooModule.toFile(), "foo-0.0.1.jar"));
 		createEmptyFiles(files);
 		given(this.directoryScanner.scan(this.tempDir.toFile())).willReturn(FileSet.of(files));
@@ -296,7 +297,7 @@ class DeployerTests {
 		Path fooModule = this.tempDir.resolve("com/example/foo/0.0.1");
 		createStructure(fooModule);
 		List<File> files = new ArrayList<>();
-		files.add(new File(fooModule.getParent().toFile(), "maven-metadata-local.xml"));
+		files.add(new File(fooModule.getParent().toFile(), "maven-metadata-local.xml.asc"));
 		files.add(new File(fooModule.toFile(), "foo-0.0.1.jar"));
 		createEmptyFiles(files);
 		given(this.directoryScanner.scan(this.tempDir.toFile())).willReturn(FileSet.of(files));

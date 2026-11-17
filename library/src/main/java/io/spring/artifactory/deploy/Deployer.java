@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -283,12 +284,20 @@ public class Deployer {
 	}
 
 	private Predicate<File> getMetadataFilter() {
-		return (file) -> !METADATA_FILES.contains(file.getName().toLowerCase());
+		return (file) -> {
+			String name = file.getName().toLowerCase(Locale.ROOT);
+			for (String metadataFile : METADATA_FILES) {
+				if (name.equals(metadataFile) || name.startsWith(metadataFile + ".")) {
+					return false;
+				}
+			}
+			return true;
+		};
 	}
 
 	private Predicate<File> getChecksumFilter() {
 		return (file) -> {
-			String name = file.getName().toLowerCase();
+			String name = file.getName().toLowerCase(Locale.ROOT);
 			for (String extension : CHECKSUM_FILE_EXTENSIONS) {
 				if (name.endsWith(extension)) {
 					return false;
